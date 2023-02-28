@@ -77,6 +77,11 @@ typedef enum
 
 int frame=0;
 int current_focus=0;
+int work=0;
+int plans=0;
+int sharpness_of_plans[100];
+int latency=3;
+
 struct _Gstmultifocus
 {
     GstElement element;

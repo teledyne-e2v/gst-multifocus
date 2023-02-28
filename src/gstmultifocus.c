@@ -451,6 +451,9 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
 
     pthread_t thread;
 
+    for(int i=0;i<100;i++){    sharpness_of_plans[i]=0;}
+
+
     int rc;
     if ((rc = pthread_create(&thread, NULL, multifocusHandler, (void *)multifocus)))
     {
@@ -640,18 +643,42 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
     }
 }
 
+
+void find_best_plans(GstPad *pad,GstBuffer *buf,int* all_focus,int number_of_focus)
+{
+
+	if(frame>latency)
+		sharpness_of_plans[frame-latency] = getSharpness(pad, buf, roi);
+	if(frame<70)
+		write_VdacPda(devicepda, bus, frame*10);
+	else{
+		
+
+	}
+
+}
+
+
 /* chain function
  * this function does the actual processing
  */
 static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuffer *buf)
 {
+
     Gstmultifocus *multifocus = GST_multifocus(parent);
 
     int number_of_focus_points=5;
     int space_between_switch=10;
     int all_focus[5];
-    multifocus->sharpness = getSharpness(pad, buf, roi);
-    write_VdacPda(devicepda, bus, 500);
+    if(frame<100)
+{
+	find_best_plans(pad,buf,all_focus,5);
+}
+else{
+work=1;
+}
+
+    
 
     all_focus[0]=100;
     all_focus[1]=200;
@@ -659,7 +686,9 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     all_focus[3]=400;
     all_focus[4]=500;
     frame++;
-    if(frame==(space_between_switch+1))
+    if(work==1){
+
+    if(frame%(space_between_switch+1)==0)
     {
         write_VdacPda(devicepda, bus, all_focus[current_focus]);
         current_focus++;
@@ -668,6 +697,8 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
             current_focus=0;
         }
     }
+}
+
 
     /*
     static struct timeval start, end;
