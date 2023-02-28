@@ -643,34 +643,36 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
     }
 }
 
-int maximum_and_zero(int *tab,int size){
+int maximum_and_zero(int *tab, int *spot,int number_of_spot){
     int max=0;
     int indice=0;
-    for(int i=0;i<size;i++)
+    for(int i=0;i<number_of_spot;i++)
     {
-        if(tab[i]>max)
+        if(tab[spot[i]]>max)
         {
-            indice=i;
-            max=tab[i];
+            indice=spot[i];
+            max=tab[spot[i]];
         }
     }
-    tab[indice]=0;
-    return max;
+    tab[indice]=-1;
+    return indice;
 }
 
 
-void find_best_plans(GstPad *pad,GstBuffer *buf,int* all_focus,int number_of_focus)
+void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus)
 {
 
-	if(frame>latency)
+	if(frame>latency){
 		sharpness_of_plans[frame-latency] = getSharpness(pad, buf, roi);
-	if(frame>25 && frame<99)
-		write_VdacPda(devicepda, bus, frame*10);
+		g_print("sharp : %d\n",sharpness_of_plans[frame-latency]);}
+	if(frame<99)
+		write_VdacPda(devicepda, bus, (frame)*10);
 	else if(frame==99){
+
 		int derivate[99];
         for(int i=0;i<99;i++)
         {
-            derivate=sharpness_of_plans[i+1]-sharpness_of_plans[i]
+            derivate[i]=sharpness_of_plans[i+1]-sharpness_of_plans[i];
         }
         int spot[50];
         int spot_number=0;
@@ -684,20 +686,25 @@ void find_best_plans(GstPad *pad,GstBuffer *buf,int* all_focus,int number_of_foc
         }
         if(number_of_focus>spot_number)
         {
+	    g_print("coucou je suis la\n");
             for(int i=0;i<spot_number;i++)
             {
                 all_focus[i]=spot[i]*10;
             }
         }
         else{
+		g_print("rate : %d\n",spot_number);
             for(int i=0;i<number_of_focus;i++)
             {
-                all_focus[i]=maximum_and_zero(spot,50);
+		
+		int indice=maximum_and_zero(sharpness_of_plans,spot,spot_number);
+		g_print("indice : %d\n",indice);
+                all_focus[i]=indice*10;
+		g_print(" finf :%d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
             }
         }
         
 
-        frame=100;
 	}
 
 }
@@ -711,32 +718,24 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
 
     Gstmultifocus *multifocus = GST_multifocus(parent);
 
-    int number_of_focus_points=5;
+    int number_of_focus_points=3;
     int space_between_switch=10;
-    int all_focus[5];
+    
     if(frame<100)
 {
-	find_best_plans(pad,buf,all_focus,5);
+	find_best_plans(pad,buf,number_of_focus_points);
 }
 else{
 work=1;
 }
-
-    
-
-    all_focus[0]=100;
-    all_focus[1]=200;
-    all_focus[2]=300;
-    all_focus[3]=400;
-    all_focus[4]=500;
     
     if(work==1){
-
+	g_print("%d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
     if(frame%(space_between_switch+1)==0)
     {
         write_VdacPda(devicepda, bus, all_focus[current_focus]);
         current_focus++;
-        if(current_focus==5)
+        if(current_focus==number_of_focus_points)
         {
             current_focus=0;
         }

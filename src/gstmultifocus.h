@@ -75,6 +75,7 @@ typedef enum
     WAITING,
     COMPLETED
 } multifocusStatus;
+int all_focus[3];
 
 int frame=0;
 int current_focus=0;
