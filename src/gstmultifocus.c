@@ -204,56 +204,7 @@ static void checkRoi()
     }
 }
 
-void *multifocusHandler(void *multifocus)
-{
-    Gstmultifocus *focus = (Gstmultifocus *)multifocus;
 
-    if (focus != NULL)
-    {
-        while (listen)
-        {
-            char input;
-            scanf(" %c", &input);
-
-            if (input == 'a' && focus->multifocusStatus == COMPLETED)
-            {
-                focus->multifocusStatus = PENDING;
-            }
-            else if (input == 's' && focus->multifocusStatus == COMPLETED)
-            {
-                int newStrat;
-                g_print("Choose an other multifocus strategy: ");
-                scanf(" %d", &newStrat);
-                if (newStrat < 0 || newStrat > 1)
-                {
-                    g_print("\tError: unknown strategy\n");
-                }
-                else
-                {
-                    focus->strategy = newStrat;
-                    g_print("\tChanging multifocus strategy\n");
-                }
-            }
-            else if (input == 'c')
-            {
-                focus->calibrating = TRUE;
-                frameCount = 0;
-                g_print("Calibrating multifocus...\n");
-            }
-            else
-            {
-                g_print("Unknown option or multifocus in progress\n");
-                printHelp();
-            }
-        }
-    }
-    else
-    {
-        g_print("Error: multifocus is null\n");
-    }
-
-    pthread_exit(NULL);
-}
 
 /* GObject vmethod implementations */
 
@@ -281,7 +232,7 @@ static void gst_multifocus_class_init(GstmultifocusClass *klass)
     g_object_class_install_property(gobject_class, PROP_WAIT_AFTER_START,
                                     g_param_spec_int("wait_after_start", "Wait_after_start", "Latency between command and command effect on gstreamer",
                                                      1, 120, 30, G_PARAM_READWRITE));                                          
-PROP_WAIT_AFTER_START
+
     g_object_class_install_property(gobject_class, PROP_WORK,
                                     g_param_spec_boolean("work", "Work",
                                                          "Set plugin to work",
@@ -320,8 +271,13 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
     multifocus->latency = 3;
     multifocus->number_of_plans = 4;
     multifocus->wait_after_start=15;
-    i2cInit(&device, &devicepda, &bus);
+    roi.x = 0;
+    roi.y = 0;
+    roi.width = 1920;
+    roi.height = 1080;
 
+    i2cInit(&device, &devicepda, &bus);
+	
     for(int i=0;i<100;i++){    sharpness_of_plans[i]=0;}
 
 
@@ -393,13 +349,14 @@ int maximum_and_zero(int *tab, int *spot,int number_of_spot){
 }
 
 
-void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus)
+void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus,int latency)
 {
 
 	if(frame>latency){
+
 		sharpness_of_plans[frame-latency] = getSharpness(pad, buf, roi);
 		g_print("sharp : %d\n",sharpness_of_plans[frame-latency]);}
-	if(frame<99)
+	if(frame<70)
 		write_VdacPda(devicepda, bus, (frame)*10);
 	else if(frame==99){
 
@@ -462,11 +419,13 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     }
 
 
-    if(multifocus->work==true && start==1){
+    if(multifocus->work==true && start==1)
+{
     if(frame<100)
 {
-	find_best_plans(pad,buf,number_of_focus_points);
+	find_best_plans(pad,buf,number_of_focus_points,multifocus->latency);
 }
+else{
     
 	g_print("%d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
     if(frame%(space_between_switch+1)==0)
@@ -478,6 +437,7 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
             current_focus=0;
         }
     }
+}
 }
 frame++;
 

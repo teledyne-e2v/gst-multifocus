@@ -85,7 +85,6 @@ int start=0;
 
 struct _Gstmultifocus
 {
-    number
     GstElement element;
 
     GstPad *sinkpad, *srcpad;
