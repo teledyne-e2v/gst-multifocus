@@ -84,8 +84,9 @@ enum
 {
     PROP_0,
     PROP_WORK,
-    LATENCY,
-    PROP_NUMBER_OF_PLANS
+    PROP_LATENCY,
+    PROP_NUMBER_OF_PLANS,
+    PROP_WAIT_AFTER_START
 };
 
 I2CDevice device;
@@ -269,14 +270,18 @@ static void gst_multifocus_class_init(GstmultifocusClass *klass)
     gobject_class->get_property = gst_multifocus_get_property;
     gobject_class->finalize     = gst_multifocus_finalize;
 
-    g_object_class_install_property(gobject_class, LATENCY,
+    g_object_class_install_property(gobject_class, PROP_LATENCY,
                                     g_param_spec_int("latency", "Latency", "Latency between command and command effect on gstreamer",
                                                      1, 120, 30, G_PARAM_READWRITE));
 
     g_object_class_install_property(gobject_class, PROP_NUMBER_OF_PLANS,
-                                    g_param_spec_int("number_of_plans", "Number_of_plans", "Number of plans to focus on",
+                                    g_param_spec_int("number_of_plans", "Number_of_plans", 
+                                    "Number of plans to focus on",
                                                      1, 100, 4, G_PARAM_READWRITE));;
-
+    g_object_class_install_property(gobject_class, PROP_WAIT_AFTER_START,
+                                    g_param_spec_int("wait_after_start", "Wait_after_start", "Latency between command and command effect on gstreamer",
+                                                     1, 120, 30, G_PARAM_READWRITE));                                          
+PROP_WAIT_AFTER_START
     g_object_class_install_property(gobject_class, PROP_WORK,
                                     g_param_spec_boolean("work", "Work",
                                                          "Set plugin to work",
@@ -314,6 +319,7 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
     multifocus->work = TRUE;
     multifocus->latency = 3;
     multifocus->number_of_plans = 4;
+    multifocus->wait_after_start=15;
     i2cInit(&device, &devicepda, &bus);
 
     for(int i=0;i<100;i++){    sharpness_of_plans[i]=0;}
@@ -331,11 +337,14 @@ static void gst_multifocus_set_property(GObject *object, guint prop_id,
     case PROP_WORK:
         multifocus->work = g_value_get_boolean(value);
         break;
-    case LATENCY:
+    case PROP_LATENCY:
         multifocus->latency = g_value_get_int(value);
         break;
     case PROP_NUMBER_OF_PLANS:
         multifocus->number_of_plans = g_value_get_int(value);
+        break;
+    case PROP_WAIT_AFTER_START:
+        multifocus->wait_after_start = g_value_get_int(value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -353,11 +362,14 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
     case PROP_WORK:
         g_value_set_boolean(value, multifocus->work);
         break;
-    case LATENCY:
+    case PROP_LATENCY:
         g_value_set_int(value, multifocus->latency);
         break;
     case PROP_NUMBER_OF_PLANS:
         g_value_set_int(value, multifocus->number_of_plans);
+        break;
+    case PROP_WAIT_AFTER_START:
+        g_value_set_int(value, multifocus->wait_after_start);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -442,16 +454,20 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
 
     int number_of_focus_points=3;
     int space_between_switch=10;
-    
+
+    if(start==0 && frame>multifocus->wait_after_start)
+    {
+        frame=0;
+        start=1;
+    }
+
+
+    if(multifocus->work==true && start==1){
     if(frame<100)
 {
 	find_best_plans(pad,buf,number_of_focus_points);
 }
-else{
-work=1;
-}
     
-    if(work==1){
 	g_print("%d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
     if(frame%(space_between_switch+1)==0)
     {

@@ -81,6 +81,7 @@ int frame=0;
 int current_focus=0;
 int plans=0;
 int sharpness_of_plans[100];
+int start=0;
 
 struct _Gstmultifocus
 {
@@ -91,6 +92,7 @@ struct _Gstmultifocus
     gboolean work;
     gint number_of_plans;
     gint     latency;
+    gint wait_after_start;
 };
 
 struct _GstmultifocusClass
