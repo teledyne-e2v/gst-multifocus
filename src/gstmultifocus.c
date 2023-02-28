@@ -83,29 +83,9 @@ enum
 enum
 {
     PROP_0,
-    PROP_STRATEGY,
-    PROP_multifocus_STATUS,
-    PROP_STEP_SMALL,
-    PROP_STEP_BIG,
-    PROP_PDA_MIN,
-    PROP_PDA_MAX,
-    PROP_DEC_MAX,
-    PROP_X,
-    PROP_Y,
-    PROP_WIDTH,
-    PROP_HEIGHT,
-    PROP_OFFSET,
-    PROP_CONTINUOUS,
-    PROP_CONTINUOUS_UPDATE_INTERVAL,
-    PROP_CONTINUOUS_TIMEOUT,
-    PROP_CONTINUOUS_THRESHOLD,
-    PROP_LISTEN,
-    PROP_multifocus_LOST,
-    PROP_SHARPNESS,
-    PROP_CALIBRATING,
-    PROP_DEBUG_LOG,
-    PROP_DEBUG_LEVEL,
-    PROP_PDA_HOLD_CMD
+    PROP_WORK,
+    LATENCY,
+    PROP_NUMBER_OF_PLANS
 };
 
 I2CDevice device;
@@ -289,99 +269,18 @@ static void gst_multifocus_class_init(GstmultifocusClass *klass)
     gobject_class->get_property = gst_multifocus_get_property;
     gobject_class->finalize     = gst_multifocus_finalize;
 
-    g_object_class_install_property(gobject_class, PROP_STRATEGY,
-                                    g_param_spec_int("strategy", "Strategy",
-                                                     "Set which algorithm is used to do the multifocus\n\t- 0 is the naive algorimth\n\t- 1 is the two pass algorimth",
-                                                     0, 1, 1, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_X,
-                                    g_param_spec_int("x", "X", "The top left X coordinates of the ROI",
-                                                     0, 1920, 0, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_Y,
-                                    g_param_spec_int("y", "Y", "The top left Y coordinates of the ROI",
-                                                     0, 1080, 0, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_WIDTH,
-                                    g_param_spec_int("width", "Width", "The width of the ROI",
-                                                     0, 1920, 1920, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_HEIGHT,
-                                    g_param_spec_int("height", "Height", "The height of the ROI",
-                                                     0, 1080, 1080, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_STEP_SMALL,
-                                    g_param_spec_int("step_small", "Step_small", "The step of the PDA for the naive algorithm",
-                                                     1, 700, 8, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_STEP_BIG,
-                                    g_param_spec_int("step_big", "Step_big", "The step of the PDA for the two pass algorithm",
-                                                     1, 700, 68, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_PDA_MIN,
-                                    g_param_spec_int("pda_min", "pda_min", "The minimal PDA value used for the multifocus algorithm",
-                                                     0, 750, 200, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_PDA_MAX,
-                                    g_param_spec_int("pda_max", "pda_max", "The maximal PDA value used for the multifocus algorithm",
-                                                     0, 750, 750, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_DEC_MAX,
-                                    g_param_spec_int("dec", "Dec", "The number of consecutive blurrier frames before stopping the multifocus",
-                                                     0, 20, 3, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_multifocus_STATUS,
-                                    g_param_spec_enum("multifocusStatus", "multifocusStatus", "The state of the multifocus:\n\tPENDING: the multifocus is about to start\n\tIN_PROGRESS: The multifocus is running\n\tCOMPLETED: The multifocus is done",
-                                                      TYPE_multifocus_STATUS, COMPLETED, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_OFFSET,
-                                    g_param_spec_int("offset", "Offset", "The frame offset between a pda command and the arrival of the corresponding frame in the plugin",
-                                                     0, 100, 3, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_CONTINUOUS_UPDATE_INTERVAL,
-                                    g_param_spec_int("continuous_update_interval", "update", "How often should the sharness be calculated",
+    g_object_class_install_property(gobject_class, LATENCY,
+                                    g_param_spec_int("latency", "Latency", "Latency between command and command effect on gstreamer",
                                                      1, 120, 30, G_PARAM_READWRITE));
 
-    g_object_class_install_property(gobject_class, PROP_CONTINUOUS_TIMEOUT,
-                                    g_param_spec_int("continuous_timeout", "timeout", "The response time in frame",
-                                                     1, 100, 4, G_PARAM_READWRITE));
+    g_object_class_install_property(gobject_class, PROP_NUMBER_OF_PLANS,
+                                    g_param_spec_int("number_of_plans", "Number_of_plans", "Number of plans to focus on",
+                                                     1, 100, 4, G_PARAM_READWRITE));;
 
-    g_object_class_install_property(gobject_class, PROP_CONTINUOUS_THRESHOLD,
-                                    g_param_spec_float("continuous_threshold", "threshold", "The threshold to determine if the image is blurrier and if the multifocus should be relaunched",
-                                                       1.0f, 100.0f, 25.0f, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_CONTINUOUS,
-                                    g_param_spec_boolean("continuous", "Continuous",
-                                                         "How many times should the sharpness calculated be under the threshold before relaunching the multifocus algorthim\nThis parameter has no effect if the parameter continuous is set to false",
-                                                         FALSE, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_LISTEN,
-                                    g_param_spec_boolean("listen", "Listen", "Listen for user input in the terminal.",
+    g_object_class_install_property(gobject_class, PROP_WORK,
+                                    g_param_spec_boolean("work", "Work",
+                                                         "Set plugin to work",
                                                          TRUE, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_multifocus_LOST,
-                                    g_param_spec_boolean("focus_lost", "Focus lost", "Whether or not the focus has been lost",
-                                                         TRUE, G_PARAM_READABLE));
-
-    g_object_class_install_property(gobject_class, PROP_SHARPNESS,
-                                    g_param_spec_long("sharpness", "Sharpness", "The sharpness of the frame",
-                                                      0, G_MAXINT64, 0, G_PARAM_READABLE));
-
-    g_object_class_install_property(gobject_class, PROP_CALIBRATING,
-                                    g_param_spec_boolean("calibrating", "Calibrating", "Whether or not the plugin is calculating the response time",
-                                                         FALSE, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_DEBUG_LOG,
-                                    g_param_spec_string("debug", "Debug", "Hold debug information about the last run of the multifocus",
-                                                        "\0", G_PARAM_READABLE));
-
-    g_object_class_install_property(gobject_class, PROP_DEBUG_LEVEL,
-                                    g_param_spec_enum("debug_level", "Debug level", "The debugging level:\n\tnone(0): nothing is logged\n\tminimal(1): Only log the step, pda range and best focus found\n\tfull(2): Add on top of the minimal level information about each step of the algorithm",
-                                                        TYPE_DEBUG_LEVEL, MINIMAL, G_PARAM_READWRITE));
-
-    g_object_class_install_property(gobject_class, PROP_PDA_HOLD_CMD,
-                                    g_param_spec_int("pda_hold_cmd", "pda_hold_cmd", "The number of frame between each command sent",
-                                                     0, 1024, 0, G_PARAM_READWRITE));
 
     gst_element_class_set_details_simple(gstelement_class,
                                          "multifocus",
@@ -412,54 +311,14 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
     GST_PAD_SET_PROXY_CAPS(multifocus->srcpad);
     gst_element_add_pad(GST_ELEMENT(multifocus), multifocus->srcpad);
 
-    multifocus->multifocusStatus = COMPLETED;
-    multifocus->strategy = TWO_PHASES;
-
-    multifocus->listen = TRUE;
-
-    multifocus->continuous = FALSE;
-    multifocus->continuousUpdateInterval = 30;
-    multifocus->continuousTimeout = 4;
-    multifocus->continuousThreshold = 25.0f;
-
-    multifocus->calibrating = FALSE;
-
-    multifocus->multifocusLost = FALSE;
-
-    multifocus->sharpness = 0;
-
-    multifocus->debugInfo = NULL;
-    multifocus->debugLvl  = MINIMAL;
-
-    multifocus->pdaHoldCmd = 0;
-
-    roi.x = 0;
-    roi.y = 0;
-    roi.width = 1920;
-    roi.height = 1080;
-
-    conf.pdaMin = 200;
-    conf.pdaMax = 750;
-    conf.pdaSmallStep = 8;
-    conf.pdaBigStep = 63;
-    conf.maxDec = 3;
-    conf.offset = 3;
-    conf.phase = PHASE_1;
-    conf.debugLvl = MINIMAL;
-
+    multifocus->work = TRUE;
+    multifocus->latency = 3;
+    multifocus->number_of_plans = 4;
     i2cInit(&device, &devicepda, &bus);
-
-    pthread_t thread;
 
     for(int i=0;i<100;i++){    sharpness_of_plans[i]=0;}
 
 
-    int rc;
-    if ((rc = pthread_create(&thread, NULL, multifocusHandler, (void *)multifocus)))
-    {
-        g_print("Error: unable to create thread, %d\n", rc);
-        exit(-1);
-    }
 }
 
 static void gst_multifocus_set_property(GObject *object, guint prop_id,
@@ -469,91 +328,14 @@ static void gst_multifocus_set_property(GObject *object, guint prop_id,
 
     switch (prop_id)
     {
-    case PROP_STRATEGY:
-        multifocus->strategy = g_value_get_int(value);
+    case PROP_WORK:
+        multifocus->work = g_value_get_boolean(value);
         break;
-    case PROP_multifocus_STATUS:
-    {
-        multifocusStatus tmp = g_value_get_enum(value);
-
-        // Prevent the multifocus from being restarted while it is in progress
-        if (multifocus->multifocusStatus == COMPLETED && tmp == PENDING)
-        {
-            multifocus->multifocusStatus = tmp;
-        }
+    case LATENCY:
+        multifocus->latency = g_value_get_int(value);
         break;
-    }
-    case PROP_STEP_SMALL:
-        conf.pdaSmallStep = g_value_get_int(value);
-        break;
-    case PROP_STEP_BIG:
-        conf.pdaBigStep = g_value_get_int(value);
-        break;
-    case PROP_PDA_MIN:
-        conf.pdaMin = g_value_get_int(value);
-        break;
-    case PROP_PDA_MAX:
-        conf.pdaMax = g_value_get_int(value);
-        break;
-    case PROP_DEC_MAX:
-        conf.maxDec = g_value_get_int(value);
-        break;
-    case PROP_X:
-        roi.x = g_value_get_int(value);
-        checkRoi();
-        break;
-    case PROP_Y:
-        roi.y = g_value_get_int(value);
-        checkRoi();
-        break;
-    case PROP_WIDTH:
-        roi.width = g_value_get_int(value);
-        checkRoi();
-        break;
-    case PROP_HEIGHT:
-        roi.height = g_value_get_int(value);
-        checkRoi();
-        break;
-    case PROP_OFFSET:
-        conf.offset = g_value_get_int(value);
-        break;
-    case PROP_CONTINUOUS:
-        multifocus->continuous = g_value_get_boolean(value);
-        break;
-    case PROP_CONTINUOUS_UPDATE_INTERVAL:
-        multifocus->continuousUpdateInterval = g_value_get_int(value);
-        break;
-    case PROP_CONTINUOUS_TIMEOUT:
-        multifocus->continuousTimeout = g_value_get_int(value);
-        break;
-    case PROP_CONTINUOUS_THRESHOLD:
-        multifocus->continuousThreshold = g_value_get_float(value);
-        break;
-    case PROP_LISTEN:
-        multifocus->listen = g_value_get_boolean(value);
-        listen = multifocus->listen;
-        break;
-    case PROP_SHARPNESS:
-        multifocus->sharpness = g_value_get_long(value);
-        break;
-    case PROP_CALIBRATING:
-    {
-        multifocus->calibrating = g_value_get_boolean(value);
-
-        if (multifocus->calibrating == TRUE)
-        {
-            frameCount = 0;
-            g_print("Calibrating multifocus...\n");
-        }
-
-        break;
-    }
-    case PROP_DEBUG_LEVEL:
-        multifocus->debugLvl = g_value_get_enum(value);
-        conf.debugLvl = multifocus->debugLvl;
-        break;
-    case PROP_PDA_HOLD_CMD:
-        multifocus->pdaHoldCmd = g_value_get_int(value);
+    case PROP_NUMBER_OF_PLANS:
+        multifocus->number_of_plans = g_value_get_int(value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -568,74 +350,14 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
 
     switch (prop_id)
     {
-    case PROP_STRATEGY:
-        g_value_set_int(value, multifocus->strategy);
+    case PROP_WORK:
+        g_value_set_boolean(value, multifocus->work);
         break;
-    case PROP_multifocus_STATUS:
-        g_value_set_enum(value, multifocus->multifocusStatus);
+    case LATENCY:
+        g_value_set_int(value, multifocus->latency);
         break;
-    case PROP_STEP_SMALL:
-        g_value_set_int(value, conf.pdaSmallStep);
-        break;
-    case PROP_STEP_BIG:
-        g_value_set_int(value, conf.pdaBigStep);
-        break;
-    case PROP_PDA_MIN:
-        g_value_set_int(value, conf.pdaMin);
-        break;
-    case PROP_PDA_MAX:
-        g_value_set_int(value, conf.pdaMax);
-        break;
-    case PROP_DEC_MAX:
-        g_value_set_int(value, conf.maxDec);
-        break;
-    case PROP_X:
-        g_value_set_int(value, roi.x);
-        break;
-    case PROP_Y:
-        g_value_set_int(value, roi.y);
-        break;
-    case PROP_WIDTH:
-        g_value_set_int(value, roi.width);
-        break;
-    case PROP_HEIGHT:
-        g_value_set_int(value, roi.height);
-        break;
-    case PROP_OFFSET:
-        g_value_set_int(value, conf.offset);
-        break;
-    case PROP_CONTINUOUS:
-        g_value_set_boolean(value, multifocus->continuous);
-        break;
-    case PROP_CONTINUOUS_UPDATE_INTERVAL:
-        g_value_set_int(value, multifocus->continuousUpdateInterval);
-        break;
-    case PROP_CONTINUOUS_TIMEOUT:
-        g_value_set_int(value, multifocus->continuousTimeout);
-        break;
-    case PROP_CONTINUOUS_THRESHOLD:
-        g_value_set_float(value, multifocus->continuousThreshold);
-        break;
-    case PROP_LISTEN:
-        g_value_set_boolean(value, multifocus->listen);
-        break;
-    case PROP_multifocus_LOST:
-        g_value_set_boolean(value, multifocus->multifocusLost);
-        break;
-    case PROP_SHARPNESS:
-        g_value_set_long(value, multifocus->sharpness);
-        break;
-    case PROP_CALIBRATING:
-        g_value_set_boolean(value, multifocus->calibrating);
-        break;
-    case PROP_DEBUG_LOG:
-        g_value_set_string(value, multifocus->debugInfo);
-        break;
-    case PROP_DEBUG_LEVEL:
-        g_value_set_enum(value, multifocus->debugLvl);
-        break;
-    case PROP_PDA_HOLD_CMD:
-        g_value_set_int(value, multifocus->pdaHoldCmd);
+    case PROP_NUMBER_OF_PLANS:
+        g_value_set_int(value, multifocus->number_of_plans);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -871,7 +593,7 @@ frame++;
     }
     else if (sharpness != -1 && buffering == 0) // When the multifocus has finish check if the frame is still sharp after a little while
     {
-        if (nbFrame >= multifocus->continuousUpdateInterval)
+        if (nbFrame >= multifocus->latency)
         {
             double relativeDiff = ((sharpness - multifocus->sharpness) / (double)multifocus->sharpness) * 100.0f;
 

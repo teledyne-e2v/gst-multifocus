@@ -75,42 +75,22 @@ typedef enum
     WAITING,
     COMPLETED
 } multifocusStatus;
-int all_focus[3];
+int all_focus[50];
 
 int frame=0;
 int current_focus=0;
-int work=0;
 int plans=0;
 int sharpness_of_plans[100];
-int latency=3;
 
 struct _Gstmultifocus
 {
+    number
     GstElement element;
 
     GstPad *sinkpad, *srcpad;
-
-    multifocusStrategy strategy;
-
-    gboolean continuous;
-    gint     continuousTimeout;
-    gint     continuousUpdateInterval;
-    gfloat   continuousThreshold;
-
-    multifocusStatus multifocusStatus;
-    gboolean multifocusLost;
-
-    gboolean calibrating;
-    
-    gboolean listen;
-
-    long int sharpness;
-
-    char *debugInfo;
-
-    DebugLevel debugLvl;
-
-    gint pdaHoldCmd;
+    gboolean work;
+    gint number_of_plans;
+    gint     latency;
 };
 
 struct _GstmultifocusClass
