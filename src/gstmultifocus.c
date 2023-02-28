@@ -86,7 +86,8 @@ enum
     PROP_WORK,
     PROP_LATENCY,
     PROP_NUMBER_OF_PLANS,
-    PROP_WAIT_AFTER_START
+    PROP_WAIT_AFTER_START,
+    PROP_SPACE_BETWEEN_SWITCH
 };
 
 I2CDevice device;
@@ -223,12 +224,12 @@ static void gst_multifocus_class_init(GstmultifocusClass *klass)
 
     g_object_class_install_property(gobject_class, PROP_LATENCY,
                                     g_param_spec_int("latency", "Latency", "Latency between command and command effect on gstreamer",
-                                                     1, 120, 30, G_PARAM_READWRITE));
+                                                     1, 120, 3, G_PARAM_READWRITE));
 
     g_object_class_install_property(gobject_class, PROP_NUMBER_OF_PLANS,
                                     g_param_spec_int("number_of_plans", "Number_of_plans", 
                                     "Number of plans to focus on",
-                                                     1, 100, 4, G_PARAM_READWRITE));;
+                                                     1, 50, 4, G_PARAM_READWRITE));;
     g_object_class_install_property(gobject_class, PROP_WAIT_AFTER_START,
                                     g_param_spec_int("wait_after_start", "Wait_after_start", "Latency between command and command effect on gstreamer",
                                                      1, 120, 30, G_PARAM_READWRITE));                                          
@@ -237,6 +238,10 @@ static void gst_multifocus_class_init(GstmultifocusClass *klass)
                                     g_param_spec_boolean("work", "Work",
                                                          "Set plugin to work",
                                                          TRUE, G_PARAM_READWRITE));
+g_object_class_install_property(gobject_class, PROP_SPACE_BETWEEN_SWITCH,
+                                    g_param_spec_int("space_between_switch", "Space_between_switch",
+                                                         "number of images separating, switch",
+                                                         1, 120, 30, G_PARAM_READWRITE));
 
     gst_element_class_set_details_simple(gstelement_class,
                                          "multifocus",
@@ -271,6 +276,7 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
     multifocus->latency = 3;
     multifocus->number_of_plans = 4;
     multifocus->wait_after_start=15;
+    multifocus->space_between_switch=30;
     roi.x = 0;
     roi.y = 0;
     roi.width = 1920;
@@ -302,6 +308,9 @@ static void gst_multifocus_set_property(GObject *object, guint prop_id,
     case PROP_WAIT_AFTER_START:
         multifocus->wait_after_start = g_value_get_int(value);
         break;
+    case PROP_SPACE_BETWEEN_SWITCH:
+        multifocus->space_between_switch = g_value_get_int(value);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -327,6 +336,10 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
     case PROP_WAIT_AFTER_START:
         g_value_set_int(value, multifocus->wait_after_start);
         break;
+    case PROP_SPACE_BETWEEN_SWITCH:
+        g_value_set_int(value, multifocus->space_between_switch);
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -410,7 +423,7 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     Gstmultifocus *multifocus = GST_multifocus(parent);
 
     int number_of_focus_points=3;
-    int space_between_switch=10;
+
 
     if(start==0 && frame>multifocus->wait_after_start)
     {
@@ -424,11 +437,12 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     if(frame<100)
 {
 	find_best_plans(pad,buf,number_of_focus_points,multifocus->latency);
+
 }
 else{
     
 	g_print("%d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
-    if(frame%(space_between_switch+1)==0)
+    if(frame%(multifocus->space_between_switch+1)==0)
     {
         write_VdacPda(devicepda, bus, all_focus[current_focus]);
         current_focus++;

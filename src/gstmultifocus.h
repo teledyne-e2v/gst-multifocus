@@ -92,6 +92,7 @@ struct _Gstmultifocus
     gint number_of_plans;
     gint     latency;
     gint wait_after_start;
+    gint space_between_switch;
 };
 
 struct _GstmultifocusClass
