@@ -286,10 +286,10 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
     multifocus->number_of_plans = 4;
     multifocus->wait_after_start=15;
     multifocus->space_between_switch=30;
-  filter->ROI1x = 0;
-  filter->ROI1y = 0;
-  filter->ROI2x = 1920;
-  filter->ROI2y = 1080;
+  multifocus->ROI1x = 0;
+  multifocus->ROI1y = 0;
+  multifocus->ROI2x = 1920;
+  multifocus->ROI2y = 1080;
     multifocus->reset=false;
 
     i2cInit(&device, &devicepda, &bus);
@@ -325,16 +325,16 @@ static void gst_multifocus_set_property(GObject *object, guint prop_id,
         multifocus->reset = g_value_get_boolean(value);
         break;
       case PROP_ROI1X:
-    filter->ROI1x = g_value_get_int(value);
+    multifocus->ROI1x = g_value_get_int(value);
     break;
   case PROP_ROI1Y:
-    filter->ROI1y = g_value_get_int(value);
+    multifocus->ROI1y = g_value_get_int(value);
     break;
   case PROP_ROI2X:
-    filter->ROI2x = g_value_get_int(value);
+    multifocus->ROI2x = g_value_get_int(value);
     break;
   case PROP_ROI2Y:
-    filter->ROI2y = g_value_get_int(value);
+    multifocus->ROI2y = g_value_get_int(value);
     break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -365,16 +365,16 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
         g_value_set_boolean(value, multifocus->reset);
         break;
       case PROP_ROI1X:
-    g_value_set_int(value, filter->ROI1x);
+    g_value_set_int(value, multifocus->ROI1x);
     break;
   case PROP_ROI1Y:
-    g_value_set_int(value, filter->ROI1y);
+    g_value_set_int(value, multifocus->ROI1y);
     break;
   case PROP_ROI2X:
-    g_value_set_int(value, filter->ROI2x);
+    g_value_set_int(value, multifocus->ROI2x);
     break;
   case PROP_ROI2Y:
-    g_value_set_int(value, filter->ROI2y);
+    g_value_set_int(value, multifocus->ROI2y);
     break;
     case PROP_SPACE_BETWEEN_SWITCH:
         g_value_set_int(value, multifocus->space_between_switch);
