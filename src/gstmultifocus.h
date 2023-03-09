@@ -94,6 +94,10 @@ struct _Gstmultifocus
     gint     latency;
     gint wait_after_start;
     gint space_between_switch;
+      gint ROI1x;
+  gint ROI1y;
+  gint ROI2x;
+  gint ROI2y;
 };
 
 struct _GstmultifocusClass

@@ -88,7 +88,11 @@ enum
     PROP_NUMBER_OF_PLANS,
     PROP_WAIT_AFTER_START,
     PROP_RESET,
-    PROP_SPACE_BETWEEN_SWITCH
+    PROP_SPACE_BETWEEN_SWITCH,
+    PROP_ROI1X,
+    PROP_ROI1Y,
+    PROP_ROI2X,
+    PROP_ROI2Y
 };
 
 I2CDevice device;
@@ -246,7 +250,14 @@ g_object_class_install_property(gobject_class, PROP_SPACE_BETWEEN_SWITCH,
                                          "FIXME:Generic",
                                          "multifocus of snappy2M module",
                                          "Esisar-PI2022 <<user@hostname.org>>");
-
+  g_object_class_install_property(gobject_class, PROP_ROI1X,
+                                  g_param_spec_int("roi1x", "Roi1x", "Roi coordinates", 0, 1920, 0, G_PARAM_READWRITE));
+  g_object_class_install_property(gobject_class, PROP_ROI1Y,
+                                  g_param_spec_int("roi1y", "Roi1y", "Roi coordinates", 0, 1080, 0, G_PARAM_READWRITE));
+  g_object_class_install_property(gobject_class, PROP_ROI2X,
+                                  g_param_spec_int("roi2x", "Roi2x", "Roi coordinates", 0, 1920, 1920, G_PARAM_READWRITE));
+  g_object_class_install_property(gobject_class, PROP_ROI2Y,
+                                  g_param_spec_int("roi2y", "Roi2y", "Roi coordinates", 0, 1080, 1080, G_PARAM_READWRITE));
     gst_element_class_add_pad_template(gstelement_class,
                                        gst_static_pad_template_get(&src_factory));
     gst_element_class_add_pad_template(gstelement_class,
@@ -275,10 +286,10 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
     multifocus->number_of_plans = 4;
     multifocus->wait_after_start=15;
     multifocus->space_between_switch=30;
-    roi.x = 0;
-    roi.y = 0;
-    roi.width = 1920;
-    roi.height = 1080;
+  filter->ROI1x = 0;
+  filter->ROI1y = 0;
+  filter->ROI2x = 1920;
+  filter->ROI2y = 1080;
     multifocus->reset=false;
 
     i2cInit(&device, &devicepda, &bus);
@@ -313,6 +324,18 @@ static void gst_multifocus_set_property(GObject *object, guint prop_id,
     case PROP_RESET:
         multifocus->reset = g_value_get_boolean(value);
         break;
+      case PROP_ROI1X:
+    filter->ROI1x = g_value_get_int(value);
+    break;
+  case PROP_ROI1Y:
+    filter->ROI1y = g_value_get_int(value);
+    break;
+  case PROP_ROI2X:
+    filter->ROI2x = g_value_get_int(value);
+    break;
+  case PROP_ROI2Y:
+    filter->ROI2y = g_value_get_int(value);
+    break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -341,6 +364,18 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
     case PROP_RESET:
         g_value_set_boolean(value, multifocus->reset);
         break;
+      case PROP_ROI1X:
+    g_value_set_int(value, filter->ROI1x);
+    break;
+  case PROP_ROI1Y:
+    g_value_set_int(value, filter->ROI1y);
+    break;
+  case PROP_ROI2X:
+    g_value_set_int(value, filter->ROI2x);
+    break;
+  case PROP_ROI2Y:
+    g_value_set_int(value, filter->ROI2y);
+    break;
     case PROP_SPACE_BETWEEN_SWITCH:
         g_value_set_int(value, multifocus->space_between_switch);
         break;
@@ -443,6 +478,11 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
 {
     if(frame<72+multifocus->wait_after_start)
 {
+    roi.x=multifocus->ROI1x;
+    roi.y=multifocus->ROI1y;
+    roi.height=multifocus->ROI2y-multifocus->ROI1y;
+    roi.width=multifocus->ROI2x-multifocus->ROI1x;
+    checkRoi();
 	find_best_plans(pad,buf,number_of_focus_points,multifocus->latency);
 
 }
