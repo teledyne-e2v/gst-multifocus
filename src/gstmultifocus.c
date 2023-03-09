@@ -87,6 +87,7 @@ enum
     PROP_LATENCY,
     PROP_NUMBER_OF_PLANS,
     PROP_WAIT_AFTER_START,
+    PROP_RESET,
     PROP_SPACE_BETWEEN_SWITCH
 };
 
@@ -242,7 +243,10 @@ g_object_class_install_property(gobject_class, PROP_SPACE_BETWEEN_SWITCH,
                                     g_param_spec_int("space_between_switch", "Space_between_switch",
                                                          "number of images separating, switch",
                                                          1, 120, 30, G_PARAM_READWRITE));
-
+    g_object_class_install_property(gobject_class, PROP_RESET,
+                                    g_param_spec_boolean("reset", "Reset",
+                                                         "Reset the Multifocus plans",
+                                                         TRUE, G_PARAM_READWRITE));
     gst_element_class_set_details_simple(gstelement_class,
                                          "multifocus",
                                          "FIXME:Generic",
@@ -281,6 +285,7 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
     roi.y = 0;
     roi.width = 1920;
     roi.height = 1080;
+    multifocus->reset=false;
 
     i2cInit(&device, &devicepda, &bus);
 	
@@ -311,6 +316,9 @@ static void gst_multifocus_set_property(GObject *object, guint prop_id,
     case PROP_SPACE_BETWEEN_SWITCH:
         multifocus->space_between_switch = g_value_get_int(value);
         break;
+    case PROP_RESET:
+        multifocus->reset = g_value_get_boolean(value);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -335,6 +343,9 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
         break;
     case PROP_WAIT_AFTER_START:
         g_value_set_int(value, multifocus->wait_after_start);
+        break;
+    case PROP_RESET:
+        g_value_set_boolean(value, multifocus->reset);
         break;
     case PROP_SPACE_BETWEEN_SWITCH:
         g_value_set_int(value, multifocus->space_between_switch);
@@ -434,15 +445,21 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
 
     if(multifocus->work==true && start==1)
 {
-    if(frame<100)
+    if(frame<72+multifocus->wait_after_start)
 {
 	find_best_plans(pad,buf,number_of_focus_points,multifocus->latency);
 
 }
 else{
     
-	g_print("%d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
-    if(frame%(multifocus->space_between_switch+1)==0)
+    
+
+    if(multifocus->reset==true)
+    {
+        frame=wait_after_start;
+        multifocus->reset=false;
+    }
+    else if(frame%(multifocus->space_between_switch+1)==0)
     {
         write_VdacPda(devicepda, bus, all_focus[current_focus]);
         current_focus++;
@@ -451,6 +468,7 @@ else{
             current_focus=0;
         }
     }
+    
 }
 }
 frame++;

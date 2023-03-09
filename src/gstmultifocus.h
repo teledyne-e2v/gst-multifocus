@@ -89,6 +89,7 @@ struct _Gstmultifocus
 
     GstPad *sinkpad, *srcpad;
     gboolean work;
+    gboolean reset;
     gint number_of_plans;
     gint     latency;
     gint wait_after_start;
