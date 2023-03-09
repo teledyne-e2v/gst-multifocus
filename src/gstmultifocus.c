@@ -171,12 +171,6 @@ debug_level_get_type(void)
     return debug_level;
 }
 
-void printHelp()
-{
-    g_print("Help:\n");
-    g_print("\ta: start multifocus\n");
-    g_print("\ts: change multifocus strategy\n");
-}
 
 /**
  * @brief Prevent the ROI from protuding from the image
@@ -379,7 +373,7 @@ void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus,int latency)
 	if(frame>latency){
 
 		sharpness_of_plans[frame-latency] = getSharpness(pad, buf, roi);
-		g_print("sharp : %d\n",sharpness_of_plans[frame-latency]);}
+		//g_print("sharp : %d\n",sharpness_of_plans[frame-latency]);}
 	if(frame<70)
 		write_VdacPda(devicepda, bus, (frame)*10);
 	else if(frame==99){
@@ -456,8 +450,9 @@ else{
 
     if(multifocus->reset==true)
     {
-        frame=wait_after_start;
+        frame=multifocus->wait_after_start;
         multifocus->reset=false;
+	g_print("ici\n");
     }
     else if(frame%(multifocus->space_between_switch+1)==0)
     {
