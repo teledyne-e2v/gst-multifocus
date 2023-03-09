@@ -411,11 +411,14 @@ void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus,int latency)
     }
 		//g_print("sharp : %d\n",sharpness_of_plans[frame-latency]);}
 	if(frame<70)
+		{
 		write_VdacPda(devicepda, bus, (frame)*10);
+		g_print("frame : %d\n",frame);
+		}
 
-	else if(frame==99){
+	else{
 
-		int derivate[99];
+	int derivate[99];
         for(int i=0;i<99;i++)
         {
             derivate[i]=sharpness_of_plans[i+1]-sharpness_of_plans[i];
@@ -432,22 +435,20 @@ void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus,int latency)
         }
         if(number_of_focus>spot_number)
         {
-	    g_print("coucou je suis la\n");
             for(int i=0;i<spot_number;i++)
             {
                 all_focus[i]=spot[i]*10;
             }
         }
         else{
-		g_print("rate : %d\n",spot_number);
+
             for(int i=0;i<number_of_focus;i++)
             {
 		
 		int indice=maximum_and_zero(sharpness_of_plans,spot,spot_number);
-		g_print("indice : %d\n",indice);
                 all_focus[i]=indice*10;
-		g_print(" finf :%d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
             }
+	g_print(" best plans :%d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
         }
         
 
@@ -476,7 +477,7 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
 
     if(multifocus->work==true && start==1)
 {
-    if(frame<72+multifocus->wait_after_start)
+    if(frame<71)
 {
     roi.x=multifocus->ROI1x;
     roi.y=multifocus->ROI1y;
@@ -492,9 +493,11 @@ else{
 
     if(multifocus->reset==true)
     {
+	multifocus->wait_after_start=0;
         frame=multifocus->wait_after_start;
+
         multifocus->reset=false;
-	g_print("ici\n");
+
     }
     else if(frame%(multifocus->space_between_switch+1)==0)
     {
