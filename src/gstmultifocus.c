@@ -373,9 +373,11 @@ void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus,int latency)
 	if(frame>latency){
 
 		sharpness_of_plans[frame-latency] = getSharpness(pad, buf, roi);
+    }
 		//g_print("sharp : %d\n",sharpness_of_plans[frame-latency]);}
 	if(frame<70)
 		write_VdacPda(devicepda, bus, (frame)*10);
+
 	else if(frame==99){
 
 		int derivate[99];
