@@ -92,7 +92,12 @@ enum
     PROP_ROI1X,
     PROP_ROI1Y,
     PROP_ROI2X,
-    PROP_ROI2Y
+    PROP_ROI2Y,
+    PROP_AUTO_DETECT_PLANS,
+    PROP_NEXT,
+    PROP_PLAN1,
+    PROP_PLAN2,
+    PROP_PLAN3
 };
 
 I2CDevice device;
@@ -245,6 +250,10 @@ g_object_class_install_property(gobject_class, PROP_SPACE_BETWEEN_SWITCH,
                                     g_param_spec_boolean("reset", "Reset",
                                                          "Reset the Multifocus plans",
                                                          TRUE, G_PARAM_READWRITE));
+    g_object_class_install_property(gobject_class, PROP_NEXT,
+                                    g_param_spec_boolean("next", "Next",
+                                                         "Research of next plan",
+                                                         FALSE, G_PARAM_READWRITE));
     gst_element_class_set_details_simple(gstelement_class,
                                          "multifocus",
                                          "FIXME:Generic",
@@ -258,6 +267,13 @@ g_object_class_install_property(gobject_class, PROP_SPACE_BETWEEN_SWITCH,
                                   g_param_spec_int("roi2x", "Roi2x", "Roi coordinates", 0, 1920, 1920, G_PARAM_READWRITE));
   g_object_class_install_property(gobject_class, PROP_ROI2Y,
                                   g_param_spec_int("roi2y", "Roi2y", "Roi coordinates", 0, 1080, 1080, G_PARAM_READWRITE));
+
+g_object_class_install_property(gobject_class, PROP_PLAN1,
+                                  g_param_spec_int("plan1", "Plan1", "Initialize focus plan 1", -90, 700, 0, G_PARAM_READWRITE));
+                                  g_object_class_install_property(gobject_class, PROP_PLAN2,
+                                  g_param_spec_int("plan2", "Plan2", "Initialize focus plan 2", -90, 700, 0, G_PARAM_READWRITE));
+                                  g_object_class_install_property(gobject_class, PROP_PLAN3,
+                                  g_param_spec_int("plan3", "Plan3", "Initialize focus plan 3", -90, 700, 0, G_PARAM_READWRITE));       
     gst_element_class_add_pad_template(gstelement_class,
                                        gst_static_pad_template_get(&src_factory));
     gst_element_class_add_pad_template(gstelement_class,
@@ -290,7 +306,12 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
   multifocus->ROI1y = 0;
   multifocus->ROI2x = 1920;
   multifocus->ROI2y = 1080;
+  multifocus->next = false;
+  multifocus->plan1 = 0;
+  multifocus->plan2 = 0;
+  multifocus->plan3 = 0;
     multifocus->reset=false;
+    multifocus->auto_detect_plans=true;
 
     i2cInit(&device, &devicepda, &bus);
 	
@@ -324,6 +345,9 @@ static void gst_multifocus_set_property(GObject *object, guint prop_id,
     case PROP_RESET:
         multifocus->reset = g_value_get_boolean(value);
         break;
+        case PROP_AUTO_DETECT_PLANS:
+        multifocus->auto_detect_plans = g_value_get_boolean(value);
+        break;
       case PROP_ROI1X:
     multifocus->ROI1x = g_value_get_int(value);
     break;
@@ -336,6 +360,17 @@ static void gst_multifocus_set_property(GObject *object, guint prop_id,
   case PROP_ROI2Y:
     multifocus->ROI2y = g_value_get_int(value);
     break;
+case PROP_PLAN1:
+    multifocus->plan1 = g_value_get_int(value);
+    break;
+case PROP_PLAN2:
+    multifocus->plan2 = g_value_get_int(value);
+    break;
+case PROP_PLAN3:
+    multifocus->plan3 = g_value_get_int(value);
+    break;
+case PROP_NEXT:
+    multifocus->next = g_value_get_boolean(value);
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -364,6 +399,9 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
     case PROP_RESET:
         g_value_set_boolean(value, multifocus->reset);
         break;
+        case PROP_AUTO_DETECT_PLANS:
+        g_value_set_boolean(value, multifocus->auto_detect_plans);
+        break;
       case PROP_ROI1X:
     g_value_set_int(value, multifocus->ROI1x);
     break;
@@ -379,7 +417,18 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
     case PROP_SPACE_BETWEEN_SWITCH:
         g_value_set_int(value, multifocus->space_between_switch);
         break;
-
+    case PROP_NEXT:
+        g_value_set_boolean(value, multifocus->next);
+        break;
+    case PROP_PLAN1:
+    g_value_set_int(value, multifocus->plan1);
+    break;
+    case PROP_PLAN2:
+    g_value_set_int(value, multifocus->plan2);
+    break;
+    case PROP_PLAN3:
+    g_value_set_int(value, multifocus->plan3);
+    break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -399,6 +448,26 @@ int maximum_and_zero(int *tab, int *spot,int number_of_spot){
     }
     tab[indice]=-1;
     return indice;
+}
+
+
+void find_best_plan(GstPad *pad,GstBuffer *buf, int indice)
+{
+    int spot;
+    if(frame>multifocus->latency){
+
+		sharpness_of_plans[frame-multifocus->latency] = getSharpness(pad, buf, roi);
+    }
+		//g_print("sharp : %d\n",sharpness_of_plans[frame-latency]);}
+	if(frame<70)
+		{
+		write_VdacPda(devicepda, bus, (frame)*10);
+		g_print("frame : %d\n",frame);
+		}
+        else{
+            int ind=maximum_and_zero(sharpness_of_plans, &spot,1);
+            all_focus[indice]=ind*10;
+        }
 }
 
 
@@ -470,6 +539,9 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
 
     if(start==0 && frame>multifocus->wait_after_start)
     {
+        all_focus[0]=multifocus->plan1;
+        all_focus[1]=multifocus->plan2;
+        all_focus[2]=multifocus->plan3;
         frame=0;
         start=1;
     }
@@ -484,15 +556,33 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     roi.height=multifocus->ROI2y-multifocus->ROI1y;
     roi.width=multifocus->ROI2x-multifocus->ROI1x;
     checkRoi();
-	find_best_plans(pad,buf,number_of_focus_points,multifocus->latency);
+    if(multifocus->auto_detect_plans)
+    {
+	    find_best_plans(pad,buf,number_of_focus_points,multifocus->latency);
+    }
+    else 
+    {
+            find_best_plan(pad,buf,indice_next);
+    }
 
 }
 else{
     
-    
+    if(multifocus->next && !multifocus->auto_detect_plans)
+        {
+            if(indice_next<multifocus->number_of_plans)
+            {
+                multifocus->next=false;
+                indice_next++;
+                frame=0;
+            }
 
-    if(multifocus->reset==true)
+        }
+
+    if(multifocus->reset)
     {
+        indice_next=0;
+            
 	multifocus->wait_after_start=0;
         frame=multifocus->wait_after_start;
 
@@ -512,170 +602,6 @@ else{
 }
 }
 frame++;
-
-
-    /*
-    static struct timeval start, end;
-
-    static long sharpness = -1;
-    static int nbFrame = 0;
-    static int lostFocusCount = 0;
-    static short int buffering = 8;
-    static int waitRemaining = 0;
-
-
-    multifocus->sharpness = getSharpness(pad, buf, roi);
-
-    // g_print("%ld\n", multifocus->sharpness);
-
-    if (multifocus->calibrating == TRUE && multifocus->multifocusStatus == COMPLETED)
-    {
-        static long int prevSharpness = 0;
-        static int offset = 0;
-        
-        if (frameCount == 0)
-        {
-            write_VdacPda(devicepda, bus, 0); // return to PDA 0
-        }
-        else if (frameCount == 5) // Wait for 5 frame, then send a command
-        {
-            write_VdacPda(devicepda, bus, 500); // go to PDA 500
-        }
-        else if (frameCount >= 5)
-        {
-            double relativeDiff = ((prevSharpness - multifocus->sharpness) / (double)multifocus->sharpness) * 100.0f;
-            
-            offset++;
-            
-            if (relativeDiff >= 25.0f || relativeDiff <= -25.0f)
-            {
-                conf.offset = offset - multifocus->pdaHoldCmd;
-                if (conf.offset < 0)
-                    conf.offset = 0;
-                
-                multifocus->calibrating = FALSE;
-
-                g_print("Calibration complete: the new offset is %d\n", conf.offset);
-                prevSharpness = 0;
-                offset = 0;
-            }
-        }
-        if (frameCount >= 60)
-        {
-            g_print("The calibration is too long, aborting\n");
-            multifocus->calibrating = FALSE;
-            prevSharpness = 0;
-            offset = 0;
-        }
-        
-        prevSharpness = multifocus->sharpness;
-
-        frameCount++;
-    }
-    else if (multifocus->multifocusStatus == PENDING) // Get the time at the start of multifocus
-    {
-        resetDebugInfo();
-        g_print("Starting the multifocus\n\n");
-        
-        resetmultifocus(multifocus->strategy, &conf, &devicepda, bus);
-
-        waitRemaining = multifocus->pdaHoldCmd;
-
-        multifocus->multifocusStatus = (waitRemaining == 0) ? IN_PROGRESS : WAITING;
-        
-        gettimeofday(&start, NULL);
-    }
-    else if (multifocus->multifocusStatus == WAITING)
-    {
-        waitRemaining--;
-
-        if ((waitRemaining) <= 0)
-            multifocus->multifocusStatus = IN_PROGRESS;
-    }
-    else if (multifocus->multifocusStatus == IN_PROGRESS)
-    {
-        if (multifocus->strategy == NAIVE)
-            sharpness = naivemultifocus(&devicepda, bus, multifocus->sharpness);
-        else if (multifocus->strategy == TWO_PHASES)
-            sharpness = twoPhasemultifocus(&devicepda, bus, multifocus->sharpness);
-        else
-        {
-            g_print("Error: Unknown multifocus strategy!\n");
-
-            sharpness = -1;
-            multifocus->multifocusStatus = COMPLETED;
-        }
-
-        if (sharpness != -1)
-        {
-            gettimeofday(&end, NULL); // Get the time when the multifocus ended
-
-            double elapsed =
-                ((end.tv_sec * 1000000 + end.tv_usec) -
-                 (start.tv_sec * 1000000 + start.tv_usec)) /
-                1000000.0f;
-
-            logmultifocusTime(elapsed);
-            
-            char *tmp;
-            size_t logLen = 0;
-            tmp = getDebugInfo(&logLen);
-
-            if (logLen != 0)
-            {
-                multifocus->debugInfo = (char*)realloc(multifocus->debugInfo, sizeof(char) * (logLen + 1));
-                multifocus->debugInfo = strncpy(multifocus->debugInfo, tmp, logLen);
-                multifocus->debugInfo[logLen] = '\0';
-                free(tmp);
-            }
-
-            multifocus->multifocusStatus = COMPLETED;
-            
-            buffering = conf.offset * 2; // Prevent the continuous multifocus from starting before the first sharp frame arrive
-        }
-        else if (multifocus->pdaHoldCmd > 0)
-        {
-            waitRemaining = multifocus->pdaHoldCmd;
-            multifocus->multifocusStatus = WAITING;
-        }
-    }
-    else if (sharpness != -1 && buffering == 0) // When the multifocus has finish check if the frame is still sharp after a little while
-    {
-        if (nbFrame >= multifocus->latency)
-        {
-            double relativeDiff = ((sharpness - multifocus->sharpness) / (double)multifocus->sharpness) * 100.0f;
-
-            if (relativeDiff > multifocus->continuousThreshold || relativeDiff < -multifocus->continuousThreshold)
-            {
-                g_print("Warning: focus has been lost (may be); %ld\n", multifocus->sharpness);
-
-                multifocus->multifocusLost = TRUE;
-                lostFocusCount++;
-            }
-            else
-            {
-                multifocus->multifocusLost = FALSE;
-                lostFocusCount = 0;
-            }
-
-            if (lostFocusCount > multifocus->continuousTimeout && multifocus->continuous == TRUE)
-            {
-                resetmultifocus(multifocus->strategy, &conf, &devicepda, bus);
-                multifocus->multifocusStatus = PENDING;
-                lostFocusCount = 0;
-                g_print("Trying to refocus the frame...\n");
-            }
-
-            nbFrame = 0;
-        }
-
-        nbFrame++;
-    }
-    else
-    {
-        buffering--;
-    }
-    */
     /* just push out the incoming buffer */
     return gst_pad_push(multifocus->srcpad, buf);
 }

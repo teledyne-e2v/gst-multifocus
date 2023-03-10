@@ -76,7 +76,7 @@ typedef enum
     COMPLETED
 } multifocusStatus;
 int all_focus[50];
-
+int indice_next=0;
 int frame=0;
 int current_focus=0;
 int plans=0;
@@ -98,6 +98,11 @@ struct _Gstmultifocus
   gint ROI1y;
   gint ROI2x;
   gint ROI2y;
+  gboolean auto_detect_plans;
+  gboolean next;
+  gint plan1;
+  gint plan2;
+  gint plan3;
 };
 
 struct _GstmultifocusClass
