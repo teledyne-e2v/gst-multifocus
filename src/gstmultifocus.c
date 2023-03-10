@@ -611,7 +611,7 @@ else{
     
     if(multifocus->next && !multifocus->auto_detect_plans)
         {
-            if(indice_next<multifocus->number_of_plans)
+            if(indice_next<multifocus->number_of_plans-1 && frame > 71)
             {
                 multifocus->next=false;
 		g_print("indice next : %d\n",indice_next);
