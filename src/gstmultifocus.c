@@ -492,7 +492,7 @@ void find_best_plan(GstPad *pad,GstBuffer *buf, int indice_test,Gstmultifocus* m
 		g_print("maxi %d\n",ind);
             if(indice_test==0)
                 multifocus->plan1=ind*10;
-            else if(indice_test)
+            else if(indice_test==1)
             {
                 multifocus->plan2=ind*10;
             }
@@ -503,7 +503,7 @@ void find_best_plan(GstPad *pad,GstBuffer *buf, int indice_test,Gstmultifocus* m
 }
 
 
-void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus,int latency)
+void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus,int latency,Gstmultifocus* multifocus)
 {
 
 	if(frame>latency){
@@ -547,9 +547,9 @@ void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus,int latency)
             {
 		
 		int indice=maximum_and_zero(sharpness_of_plans,spot,spot_number);
-                if(indice_test==0)
+                if(i==0)
                 multifocus->plan1=indice*10;
-            else if(indice_test)
+            else if(i==1)
             {
                 multifocus->plan2=indice*10;
             }
@@ -577,8 +577,8 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     int number_of_focus_points=3;
 
     all_focus[0]=multifocus->plan1;
-    all_focus[0]=multifocus->plan2;
-    all_focus[0]=multifocus->plan3;
+    all_focus[1]=multifocus->plan2;
+    all_focus[2]=multifocus->plan3;
     if(start==0 && frame>multifocus->wait_after_start)
     {
 
@@ -598,11 +598,12 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     checkRoi();
     if(multifocus->auto_detect_plans)
     {
-	    find_best_plans(pad,buf,number_of_focus_points,multifocus->latency);
+	    find_best_plans(pad,buf,number_of_focus_points,multifocus->latency,multifocus);
     }
     else 
     {
             find_best_plan(pad,buf,indice_next,multifocus);
+            
     }
 
 }
@@ -615,7 +616,7 @@ else{
                 multifocus->next=false;
 		g_print("indice next : %d\n",indice_next);
 		g_print("indice all_focus %d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
-                indice_next++;
+indice_next++;
                 frame=0;
 
             }
@@ -623,7 +624,7 @@ else{
 
     if(multifocus->reset)
     {
-        indice_next=0;
+        indice_next=-1;
          
 	multifocus->wait_after_start=0;
 	if(multifocus->auto_detect_plans)

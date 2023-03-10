@@ -76,7 +76,7 @@ typedef enum
     COMPLETED
 } multifocusStatus;
 int all_focus[50];
-int indice_next=0;
+int indice_next=-1;
 int frame=0;
 int current_focus=0;
 int plans=0;
