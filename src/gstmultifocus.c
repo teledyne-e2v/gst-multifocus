@@ -636,7 +636,7 @@ frame=0;
         multifocus->reset=false;
 
     }
-    else if(frame%(multifocus->space_between_switch+1)==0 && (indice_next==multifocus->number_of_plans || multifocus->auto_detect_plans))
+    else if(frame%(multifocus->space_between_switch+1)==0 && (indice_next==multifocus->number_of_plans-1 || multifocus->auto_detect_plans))
     {
         write_VdacPda(devicepda, bus, all_focus[current_focus]);
         current_focus++;
