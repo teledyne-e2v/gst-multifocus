@@ -254,6 +254,10 @@ g_object_class_install_property(gobject_class, PROP_SPACE_BETWEEN_SWITCH,
                                     g_param_spec_boolean("next", "Next",
                                                          "Research of next plan",
                                                          FALSE, G_PARAM_READWRITE));
+    g_object_class_install_property(gobject_class, PROP_AUTO_DETECT_PLANS,
+                                    g_param_spec_boolean("auto_detect_plans", "Auto_detect_plans",
+                                                         "auto detection of plans",
+                                                         TRUE, G_PARAM_READWRITE));
     gst_element_class_set_details_simple(gstelement_class,
                                          "multifocus",
                                          "FIXME:Generic",
@@ -371,6 +375,7 @@ case PROP_PLAN3:
     break;
 case PROP_NEXT:
     multifocus->next = g_value_get_boolean(value);
+    break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -435,6 +440,22 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
     }
 }
 
+int max_tab(int *tab, int size_of_tab)
+{
+ int max=0;
+int indi=0;
+	for(int i=0;i<size_of_tab;i++)
+	{
+		if(tab[i]>max)
+		{
+			indi=i;
+			max=tab[i];
+		}
+
+	}
+	return indi;
+}
+
 int maximum_and_zero(int *tab, int *spot,int number_of_spot){
     int max=0;
     int indice=0;
@@ -451,22 +472,25 @@ int maximum_and_zero(int *tab, int *spot,int number_of_spot){
 }
 
 
-void find_best_plan(GstPad *pad,GstBuffer *buf, int indice)
+void find_best_plan(GstPad *pad,GstBuffer *buf, int indice_test,Gstmultifocus* multifocus)
 {
     int spot;
     if(frame>multifocus->latency){
 
 		sharpness_of_plans[frame-multifocus->latency] = getSharpness(pad, buf, roi);
+
     }
 		//g_print("sharp : %d\n",sharpness_of_plans[frame-latency]);}
 	if(frame<70)
 		{
 		write_VdacPda(devicepda, bus, (frame)*10);
-		g_print("frame : %d\n",frame);
+		//g_print("frame : %d\n",frame);
 		}
         else{
-            int ind=maximum_and_zero(sharpness_of_plans, &spot,1);
-            all_focus[indice]=ind*10;
+
+            int ind=max_tab(sharpness_of_plans,100);
+		g_print("maxi %d\n",ind);
+            all_focus[indice_test]=ind*10;
         }
 }
 
@@ -482,7 +506,7 @@ void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus,int latency)
 	if(frame<70)
 		{
 		write_VdacPda(devicepda, bus, (frame)*10);
-		g_print("frame : %d\n",frame);
+		//g_print("frame : %d\n",frame);
 		}
 
 	else{
@@ -539,9 +563,7 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
 
     if(start==0 && frame>multifocus->wait_after_start)
     {
-        all_focus[0]=multifocus->plan1;
-        all_focus[1]=multifocus->plan2;
-        all_focus[2]=multifocus->plan3;
+
         frame=0;
         start=1;
     }
@@ -562,7 +584,7 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     }
     else 
     {
-            find_best_plan(pad,buf,indice_next);
+            find_best_plan(pad,buf,indice_next,multifocus);
     }
 
 }
@@ -573,23 +595,29 @@ else{
             if(indice_next<multifocus->number_of_plans)
             {
                 multifocus->next=false;
+		g_print("indice next : %d\n",indice_next);
+		g_print("indice all_focus %d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
                 indice_next++;
                 frame=0;
-            }
 
+            }
         }
 
     if(multifocus->reset)
     {
         indice_next=0;
-            
+         
 	multifocus->wait_after_start=0;
-        frame=multifocus->wait_after_start;
+	if(multifocus->auto_detect_plans)
+{
+frame=0;
+}
+        	
 
         multifocus->reset=false;
 
     }
-    else if(frame%(multifocus->space_between_switch+1)==0)
+    else if(frame%(multifocus->space_between_switch+1)==0 && (indice_next==multifocus->number_of_plans || multifocus->auto_detect_plans))
     {
         write_VdacPda(devicepda, bus, all_focus[current_focus]);
         current_focus++;
