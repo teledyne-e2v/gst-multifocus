@@ -490,7 +490,15 @@ void find_best_plan(GstPad *pad,GstBuffer *buf, int indice_test,Gstmultifocus* m
 
             int ind=max_tab(sharpness_of_plans,100);
 		g_print("maxi %d\n",ind);
-            all_focus[indice_test]=ind*10;
+            if(indice_test==0)
+                multifocus->plan1=ind*10;
+            else if(indice_test)
+            {
+                multifocus->plan2=ind*10;
+            }
+            else{
+                multifocus->plan3=ind*10;
+            }
         }
 }
 
@@ -539,7 +547,15 @@ void find_best_plans(GstPad *pad,GstBuffer *buf,int number_of_focus,int latency)
             {
 		
 		int indice=maximum_and_zero(sharpness_of_plans,spot,spot_number);
-                all_focus[i]=indice*10;
+                if(indice_test==0)
+                multifocus->plan1=indice*10;
+            else if(indice_test)
+            {
+                multifocus->plan2=indice*10;
+            }
+            else{
+                multifocus->plan3=indice*10;
+            }
             }
 	g_print(" best plans :%d, %d, %d\n",all_focus[0],all_focus[1],all_focus[2]);
         }
@@ -560,7 +576,9 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
 
     int number_of_focus_points=3;
 
-
+    all_focus[0]=multifocus->plan1;
+    all_focus[0]=multifocus->plan2;
+    all_focus[0]=multifocus->plan3;
     if(start==0 && frame>multifocus->wait_after_start)
     {
 
