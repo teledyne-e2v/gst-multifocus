@@ -82,6 +82,7 @@ int current_focus=0;
 int plans=0;
 int sharpness_of_plans[100];
 int start=0;
+int searching_plans=0;
 
 struct _Gstmultifocus
 {
