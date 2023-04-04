@@ -184,28 +184,28 @@ static void gst_multifocus_class_init(GstmultifocusClass *klass)
 
     g_object_class_install_property(gobject_class, PROP_NUMBER_OF_PLANS,
                                     g_param_spec_int("number_of_plans", "Number_of_plans",
-                                                     "Number of plans to focus on",
+                                                     "Not implemented yet, please do not use",
                                                      1, 50, 4, G_PARAM_READWRITE));
     ;
     g_object_class_install_property(gobject_class, PROP_WAIT_AFTER_START,
-                                    g_param_spec_int("wait_after_start", "Wait_after_start", "Latency between command and command effect on gstreamer",
+                                    g_param_spec_int("wait_after_start", "Wait_after_start", "number of frames we are waiting before launching the multifocus",
                                                      1, 120, 30, G_PARAM_READWRITE));
 
     g_object_class_install_property(gobject_class, PROP_WORK,
                                     g_param_spec_boolean("work", "Work",
-                                                         "Set plugin to work",
+                                                         "activate/desactivate plugin (usefull only for applications)",
                                                          TRUE, G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_SPACE_BETWEEN_SWITCH,
                                     g_param_spec_int("space_between_switch", "Space_between_switch",
-                                                     "number of images separating, switch",
+                                                     "number of images separating each PDA switch",
                                                      1, 120, 30, G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_RESET,
                                     g_param_spec_boolean("reset", "Reset",
-                                                         "Reset the Multifocus plans",
+                                                         "Reset the Multifocus plans (usefull only for applications)",
                                                          TRUE, G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_NEXT,
                                     g_param_spec_boolean("next", "Next",
-                                                         "Research of next plan",
+                                                         "Research of next plan (usefull only for applications)",
                                                          FALSE, G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_AUTO_DETECT_PLANS,
                                     g_param_spec_boolean("auto_detect_plans", "Auto_detect_plans",
@@ -214,8 +214,8 @@ static void gst_multifocus_class_init(GstmultifocusClass *klass)
     gst_element_class_set_details_simple(gstelement_class,
                                          "multifocus",
                                          "FIXME:Generic",
-                                         "multifocus of snappy2M module",
-                                         "Esisar-PI2022 <<user@hostname.org>>");
+                                         "multifocus of OPTIMUM2M module",
+                                         "Teledyne e2V");
     g_object_class_install_property(gobject_class, PROP_ROI1X,
                                     g_param_spec_int("roi1x", "Roi1x", "Roi coordinates", 0, 1920, 0, G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_ROI1Y,
@@ -226,11 +226,11 @@ static void gst_multifocus_class_init(GstmultifocusClass *klass)
                                     g_param_spec_int("roi2y", "Roi2y", "Roi coordinates", 0, 1080, 1080, G_PARAM_READWRITE));
 
     g_object_class_install_property(gobject_class, PROP_PLAN1,
-                                    g_param_spec_int("plan1", "Plan1", "Initialize focus plan 1", -90, 700, 0, G_PARAM_READWRITE));
+                                    g_param_spec_int("plan1", "Plan1", "Initialize focus plan 1 with PDA value", -90, 700, 0, G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_PLAN2,
-                                    g_param_spec_int("plan2", "Plan2", "Initialize focus plan 2", -90, 700, 0, G_PARAM_READWRITE));
+                                    g_param_spec_int("plan2", "Plan2", "Initialize focus plan 2 with PDA value", -90, 700, 0, G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_PLAN3,
-                                    g_param_spec_int("plan3", "Plan3", "Initialize focus plan 3", -90, 700, 0, G_PARAM_READWRITE));
+                                    g_param_spec_int("plan3", "Plan3", "Initialize focus plan 3 with PDA value", -90, 700, 0, G_PARAM_READWRITE));
     gst_element_class_add_pad_template(gstelement_class,
                                        gst_static_pad_template_get(&src_factory));
     gst_element_class_add_pad_template(gstelement_class,

@@ -1,4 +1,4 @@
-# Version 1.2
+# Version 1.0
 
 # About
 
@@ -43,11 +43,35 @@ The plugin can be used in any gstreamer pipeline by adding "multifocus", the nam
 
 ## Pipeline examples:
 
-$ gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+### Without NVIDIA plugins
 
-$ gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus latency=4 ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+Simple test :
 
-$ gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+	gst-launch-1.0 v4l2src ! multifocus ! queue ! videoconvert ! queue ! xvimagesink sync=false
+
+Multifocus between 3 plans with PDA=0/200/400 :
+
+	gst-launch-1.0 v4l2src ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false ! queue ! videoconvert ! queue ! xvimagesink sync=false
+
+Multifocus between 3 plans with PDA=0/200/400 with 5 frame between each switch of plans :
+
+	gst-launch-1.0 v4l2src ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false space-between-switch=5 ! queue ! videoconvert ! queue ! xvimagesink sync=false
+
+### With NVIDIA plugins
+
+Note : You should have update the nvvidconv plugin to support GRAY8, if not the image will be grayed out.
+
+Simple test :
+
+	gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+
+Multifocus between 3 plans with PDA=0/200/400 :
+
+	gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+
+Multifocus between 3 plans with PDA=0/200/400 with 5 frame between each switch of plans :
+
+	gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false space-between-switch=5 ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
 
 
 # Plugin parameters (gst-inspect-1.0 multifocus)
