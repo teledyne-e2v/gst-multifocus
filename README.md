@@ -76,7 +76,7 @@ Multifocus between 3 plans with PDA=0/200/400 with 5 frame between each switch o
 
 # Plugin parameters (gst-inspect-1.0 multifocus)
 
-  name                : The name of the object
+-  name                : The name of the object
                         flags: readable, writable
                         String. Default: "multifocus0"
 
