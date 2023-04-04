@@ -135,52 +135,6 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
 static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuffer *buf);
 
 static void gst_multifocus_finalize();//GObject *object);
-/*
-#define TYPE_multifocus_STATUS (multifocus_status_get_type())
-static GType
-multifocus_status_get_type(void)
-{
-    static GType multifocus_status = 0;
-
-    if (!multifocus_status)
-    {
-        static const GEnumValue status[] =
-            {
-                {PENDING, "Pending", "pending"},
-                {IN_PROGRESS, "In progress", "in_progress"},
-                {COMPLETED, "Completed", "completed"},
-                {0, NULL, NULL}
-            };
-
-        multifocus_status = g_enum_register_static("multifocusStatus", status);
-    }
-
-    return multifocus_status;
-}*/
-/*
-#define TYPE_DEBUG_LEVEL (debug_level_get_type())
-static GType
-debug_level_get_type(void)
-{
-    static GType debug_level = 0;
-
-    if (!debug_level)
-    {
-        static const GEnumValue status[] =
-            {
-                {NONE, "None", "none"},
-                {MINIMAL, "Minimal", "minimal"},
-                {FULL, "Full", "full"},
-                {0, NULL, NULL}
-            };
-
-        debug_level = g_enum_register_static("DebugLevel", status);
-    }
-
-    return debug_level;
-}*/
-
-
 /**
  * @brief Prevent the ROI from protuding from the image
  */
