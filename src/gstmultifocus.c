@@ -538,6 +538,15 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
         frame = 0;
         start = 1;
     }
+    else if (frame % (multifocus->space_between_switch + 1) == 0)
+    {
+        write_VdacPda(devicepda, bus, all_focus[current_focus]);
+        current_focus++;
+        if (current_focus == number_of_focus_points)
+        {
+            current_focus = 0;
+        }
+    }
 
     if (multifocus->work == true && start == 1)
     {
