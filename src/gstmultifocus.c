@@ -134,8 +134,8 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
 
 static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuffer *buf);
 
-static void gst_multifocus_finalize(GObject *object);
-
+static void gst_multifocus_finalize();//GObject *object);
+/*
 #define TYPE_multifocus_STATUS (multifocus_status_get_type())
 static GType
 multifocus_status_get_type(void)
@@ -156,8 +156,8 @@ multifocus_status_get_type(void)
     }
 
     return multifocus_status;
-}
-
+}*/
+/*
 #define TYPE_DEBUG_LEVEL (debug_level_get_type())
 static GType
 debug_level_get_type(void)
@@ -178,7 +178,7 @@ debug_level_get_type(void)
     }
 
     return debug_level;
-}
+}*/
 
 
 /**
@@ -474,7 +474,6 @@ int maximum_and_zero(int *tab, int *spot,int number_of_spot){
 
 void find_best_plan(GstPad *pad,GstBuffer *buf, int indice_test,Gstmultifocus* multifocus)
 {
-    int spot;
     if(frame>multifocus->latency){
 
 		sharpness_of_plans[frame-multifocus->latency] = getSharpness(pad, buf, roi);
@@ -670,7 +669,7 @@ static gboolean multifocus_init(GstPlugin *multifocus)
                                 GST_TYPE_multifocus);
 }
 
-static void gst_multifocus_finalize(GObject *object)
+static void gst_multifocus_finalize()//GObject *object)
 {
     disable_VdacPda(devicepda, bus);
     i2c_close(bus);
