@@ -7,6 +7,20 @@ The principle of multifocus is to change focus at regular intervals, it can be u
 
 It require **OPTIMOM 2M** driver installed on the system.
 
+# Dependencies
+
+The following libraries are required for this plugin.
+- v4l-utils
+- libv4l-dev
+- libgstreamer1.0-dev
+- libgstreamer-plugins-base1.0-dev
+
+Install them with: 
+
+```
+sudo apt install v4l-utils libv4l-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+```
+
 # Compilation
 First you must make sure that your device's clock is correctly setup.
 Otherwise the compilation will fail.
