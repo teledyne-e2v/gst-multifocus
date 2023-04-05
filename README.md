@@ -1,7 +1,6 @@
 # Version 1.0
 
 # About
-
 This plugin implements a basic multifocus algorithm.
 
 The principle of multifocus is to change focus at regular intervals, it can be used for example to decode barcodes located on different focal planes or also to reconstruct a clear image at all planes.
@@ -9,70 +8,80 @@ The principle of multifocus is to change focus at regular intervals, it can be u
 It require **OPTIMOM 2M** driver installed on the system.
 
 # Compilation
-
 First you must make sure that your device's clock is correctly setup.
 Otherwise the compilation will fail.
 
-In the multifocusPlugin folder do:
-    - bash autogen.sh
-    - make
+In the **gst-multifocus** folder do:
+```
+bash autogen.sh
+make
+```
 
 # Install
-
-- sudo make install
+```
+sudo make install
+```
 
 To test if the plugin has been correctly install, do:
-    - export GST_PLUGIN_PATH=/usr/local/lib/gstreamer-1.0/
-    - gst-inspect-1.0 multifocus
+```
+export GST_PLUGIN_PATH=/usr/local/lib/gstreamer-1.0/
+gst-inspect-1.0 multifocus
+```
 
 If the plugin failed to install the following message will be displayed: "No such element or plugin 'multifocus'"
 
 # Uninstall
-
-- sudo rm /usr/local/lib/gstreamer-1.0/libgstmultifocus.*
-
+```
+sudo rm /usr/local/lib/gstreamer-1.0/libgstmultifocus.*
+```
 # Usage
 
 By default the plugin is installed in /usr/local/lib/gstreamer-1.0. 
 It is then required to tell gstreamer where to find it with the command:
-- export GST_PLUGIN_PATH=/usr/local/lib/gstreamer-1.0/
+```
+export GST_PLUGIN_PATH=/usr/local/lib/gstreamer-1.0/
+```
 
 Before using the plugin the Topaz2M must be set in compatible sensor mode : GRAY8 format ; Y10 isn't supported by the v4l2src
 
-The plugin can be used in any gstreamer pipeline by adding "multifocus", the name of the plugin.
+The plugin can be used in any gstreamer pipeline by adding ```multifocus```, the name of the plugin.
 
 ## Pipeline examples:
 
 ### Without NVIDIA plugins
 
 Simple test :
-
-	gst-launch-1.0 v4l2src ! multifocus ! queue ! videoconvert ! queue ! xvimagesink sync=false
+```
+gst-launch-1.0 v4l2src ! multifocus ! queue ! videoconvert ! queue ! xvimagesink sync=false
+```
 
 Multifocus between 3 plans with PDA=0/200/400 :
-
-	gst-launch-1.0 v4l2src ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false ! queue ! videoconvert ! queue ! xvimagesink sync=false
+```
+gst-launch-1.0 v4l2src ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false ! queue ! videoconvert ! queue ! xvimagesink sync=false
+```
 
 Multifocus between 3 plans with PDA=0/200/400 with 5 frame between each switch of plans :
-
-	gst-launch-1.0 v4l2src ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false space-between-switch=5 ! queue ! videoconvert ! queue ! xvimagesink sync=false
+```
+gst-launch-1.0 v4l2src ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false space-between-switch=5 ! queue ! videoconvert ! queue ! xvimagesink sync=false
+```
 
 ### With NVIDIA plugins
-
-Note : You should have update the nvvidconv plugin to support GRAY8, if not the image will be grayed out.
+Note : You should have update the **nvvidconv** plugin to support GRAY8, if not the image will be grayed out.
 
 Simple test :
-
-	gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+```
+gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+```
 
 Multifocus between 3 plans with PDA=0/200/400 :
-
-	gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+```
+gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+```
 
 Multifocus between 3 plans with PDA=0/200/400 with 5 frame between each switch of plans :
-
-	gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false space-between-switch=5 ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
-
+```
+gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false space-between-switch=5 ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+```
 
 # Plugin parameters (gst-inspect-1.0 multifocus)
 
