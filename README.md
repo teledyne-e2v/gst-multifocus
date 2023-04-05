@@ -76,71 +76,71 @@ Multifocus between 3 plans with PDA=0/200/400 with 5 frame between each switch o
 
 # Plugin parameters (gst-inspect-1.0 multifocus)
 
-  name                : The name of the object
+-  name                : "The name of the object
                         flags: readable, writable
-                        String. Default: "multifocus0"
+                        String. Default: "multifocus0""
 
-  parent              : The parent of the object
+-  parent              : The parent of the object
                         flags: readable, writable
                         Object of type "GstObject"
 
-  work                : activate/desactivate plugin (usefull only for applications)
+-  work                : activate/desactivate plugin (usefull only for applications)
                         flags: readable, writable
                         Boolean. Default: true
 
-  latency             : Latency between command and command effect on gstreamer
+-  latency             : Latency between command and command effect on gstreamer
                         flags: readable, writable
                         Integer. Range: 1 - 120 Default: 3 
 
-  number-of-plans     : Not implemented yet, please do not use
+-  number-of-plans     : Not implemented yet, please do not use
                         flags: readable, writable
                         Integer. Range: 1 - 50 Default: 4 
 
-  wait-after-start    : number of frames we are waiting before launching the multifocus
+-  wait-after-start    : number of frames we are waiting before launching the multifocus
                         flags: readable, writable
                         Integer. Range: 1 - 120 Default: 15 
 
-  reset               : Reset the Multifocus plans (usefull only for applications)
+ - reset               : Reset the Multifocus plans (usefull only for applications)
                         flags: readable, writable
                         Boolean. Default: false
 
-  space-between-switch: number of images separating each PDA switch
+-  space-between-switch: number of images separating each PDA switch
                         flags: readable, writable
                         Integer. Range: 1 - 120 Default: 30 
 
-  roi1x               : Roi coordinates
+-  roi1x               : Roi coordinates
                         flags: readable, writable
                         Integer. Range: 0 - 1920 Default: 0 
 
-  roi1y               : Roi coordinates
+-  roi1y               : Roi coordinates
                         flags: readable, writable
                         Integer. Range: 0 - 1080 Default: 0 
 
-  roi2x               : Roi coordinates
+-  roi2x               : Roi coordinates
                         flags: readable, writable
                         Integer. Range: 0 - 1920 Default: 1920 
 
-  roi2y               : Roi coordinates
+-  roi2y               : Roi coordinates
                         flags: readable, writable
                         Integer. Range: 0 - 1080 Default: 1080 
 
-  auto-detect-plans   : auto detection of plans
+-  auto-detect-plans   : auto detection of plans
                         flags: readable, writable
                         Boolean. Default: true
 
-  next                : Research of next plan (usefull only for applications)
+-  next                : Research of next plan (usefull only for applications)
                         flags: readable, writable
                         Boolean. Default: false
 
-  plan1               : Initialize focus plan 1 with PDA value
+-  plan1               : Initialize focus plan 1 with PDA value
                         flags: readable, writable
                         Integer. Range: -90 - 700 Default: 0 
 
-  plan2               : Initialize focus plan 2 with PDA value
+-  plan2               : Initialize focus plan 2 with PDA value
                         flags: readable, writable
                         Integer. Range: -90 - 700 Default: 0 
 
-  plan3               : Initialize focus plan 3 with PDA value
+-  plan3               : Initialize focus plan 3 with PDA value
                         flags: readable, writable
                         Integer. Range: -90 - 700 Default: 0 
 
