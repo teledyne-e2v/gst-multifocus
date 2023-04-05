@@ -85,72 +85,88 @@ gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! mul
 
 # Plugin parameters (gst-inspect-1.0 multifocus)
 
--  name                : "The name of the object
-                        flags: readable, writable
-                        String. Default: "multifocus0""
-
--  parent              : The parent of the object
-                        flags: readable, writable
-                        Object of type "GstObject"
-
 -  work                : activate/desactivate plugin (usefull only for applications)
-                        flags: readable, writable
-                        Boolean. Default: true
+	- flags: readable, writable
+	- Boolean
+	- Default: true
 
 -  latency             : Latency between command and command effect on gstreamer
-                        flags: readable, writable
-                        Integer. Range: 1 - 120 Default: 3 
+	- flags: readable, writable
+	- Integer
+	- Range: 1 - 120 
+	- Default: 3 
 
 -  number-of-plans     : Not implemented yet, please do not use
-                        flags: readable, writable
-                        Integer. Range: 1 - 50 Default: 4 
+	- flags: readable, writable
+	- Integer. 
+	- Range: 1 - 50 
+	- Default: 4 
 
 -  wait-after-start    : number of frames we are waiting before launching the multifocus
-                        flags: readable, writable
-                        Integer. Range: 1 - 120 Default: 15 
+	- flags: readable, writable
+	- Integer. 
+	- Range: 1 - 120 
+	- Default: 15 
 
  - reset               : Reset the Multifocus plans (usefull only for applications)
-                        flags: readable, writable
-                        Boolean. Default: false
+	- flags: readable, writable
+	- Boolean. 
+	- Default: false
 
 -  space-between-switch: number of images separating each PDA switch
-                        flags: readable, writable
-                        Integer. Range: 1 - 120 Default: 30 
+	- flags: readable, writable
+	- Integer. 
+	- Range: 1 - 120 
+	- Default: 30 
 
 -  roi1x               : Roi coordinates
-                        flags: readable, writable
-                        Integer. Range: 0 - 1920 Default: 0 
+	- flags: readable, writable
+	- Integer. 
+	- Range: 0 - 1920 
+	- Default: 0 
 
 -  roi1y               : Roi coordinates
-                        flags: readable, writable
-                        Integer. Range: 0 - 1080 Default: 0 
+	- flags: readable, writable
+	- Integer. 
+	- Range: 0 - 1080 
+	- Default: 0 
 
 -  roi2x               : Roi coordinates
-                        flags: readable, writable
-                        Integer. Range: 0 - 1920 Default: 1920 
+	- flags: readable, writable
+	- Integer. 
+	- Range: 0 - 1920 
+	- Default: 1920 
 
 -  roi2y               : Roi coordinates
-                        flags: readable, writable
-                        Integer. Range: 0 - 1080 Default: 1080 
+	- flags: readable, writable
+	- Integer. 
+	- Range: 0 - 1080 
+	- Default: 1080 
 
 -  auto-detect-plans   : auto detection of plans
-                        flags: readable, writable
-                        Boolean. Default: true
+	- flags: readable, writable
+	- Boolean. 
+	- Default: true
 
 -  next                : Research of next plan (usefull only for applications)
-                        flags: readable, writable
-                        Boolean. Default: false
+	- flags: readable, writable
+	- Boolean. 
+	- Default: false
 
 -  plan1               : Initialize focus plan 1 with PDA value
-                        flags: readable, writable
-                        Integer. Range: -90 - 700 Default: 0 
+	- flags: readable, writable
+	- Integer. 
+	- Range: -90 - 700 
+	- Default: 0 
 
 -  plan2               : Initialize focus plan 2 with PDA value
-                        flags: readable, writable
-                        Integer. Range: -90 - 700 Default: 0 
+	- flags: readable, writable
+	- Integer. 
+	- Range: -90 - 700 
+	- Default: 0 
 
 -  plan3               : Initialize focus plan 3 with PDA value
-                        flags: readable, writable
-                        Integer. Range: -90 - 700 Default: 0 
-
-
+	- flags: readable, writable
+	- Integer. 
+	- Range: -90 - 700 
+	- Default: 0 
