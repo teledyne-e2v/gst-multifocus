@@ -172,7 +172,7 @@ long int getSharpness(GstPad *pad, GstBuffer *buf, ROI roi)
     if (!res)
     {
         g_print("could not get snapshot dimension\n");
-        exit(-1);
+        return -1;
     }
 
     long int sharp = unbiasedSharpnessThread(map.data, width, roi);

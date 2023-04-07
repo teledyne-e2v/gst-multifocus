@@ -287,7 +287,7 @@ ssize_t i2c_write(const I2CDevice *device, unsigned int iaddr, const void *buf, 
         memcpy(tmp_buf + device->iaddr_bytes, buffer, size);
 
         /* Write to buf content to i2c device length is address length and write buffer length */
-        if (write(device->bus, tmp_buf, device->iaddr_bytes + size) != (int)(device->iaddr_bytes + size))
+        if (write(device->bus, tmp_buf, device->iaddr_bytes + size) != device->iaddr_bytes + size)
         {
 
             perror("I2C write error:");

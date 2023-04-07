@@ -270,7 +270,7 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
     multifocus->reset = false;
     multifocus->auto_detect_plans = true;
 
-    i2cInit(&device, &devicepda, &bus);
+    i2c_err = i2cInit(&device, &devicepda, &bus);
 
     for (int i = 0; i < 100; i++)
     {
@@ -525,8 +525,10 @@ void find_best_plans(GstPad *pad, GstBuffer *buf, int number_of_focus, int laten
 static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuffer *buf)
 {
 
-    Gstmultifocus *multifocus = GST_multifocus(parent);
 
+    Gstmultifocus *multifocus = GST_multifocus(parent);
+    if(!i2c_err)
+{
     int number_of_focus_points = 3;
 
     all_focus[0] = multifocus->plan1;
@@ -606,6 +608,7 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
         }
     }
     frame++;
+	}
     /* just push out the incoming buffer */
     return gst_pad_push(multifocus->srcpad, buf);
 }
