@@ -99,6 +99,11 @@ enum
     PROP_PLAN2,
     PROP_PLAN3
 };
+int max_tab(int *tab, int size_of_tab);
+int maximum_and_zero(int *tab, int *spot, int number_of_spot);
+void find_best_plan(GstPad *pad, GstBuffer *buf, int indice_test, Gstmultifocus *multifocus);
+void find_best_plans(GstPad *pad, GstBuffer *buf, int number_of_focus, int latency, Gstmultifocus *multifocus);
+static void gst_multifocus_finalize(void);
 
 I2CDevice device;
 I2CDevice devicepda;
@@ -134,11 +139,10 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
 
 static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuffer *buf);
 
-static void gst_multifocus_finalize(); // GObject *object);
 /**
  * @brief Prevent the ROI from protuding from the image
  */
-static void checkRoi()
+static void checkRoi(void)
 {
     // Prevent the ROI from being to close to the very end of the frame as it migth crash when calculating the sharpness
     if (roi.x > 1916)
@@ -475,12 +479,13 @@ void find_best_plans(GstPad *pad, GstBuffer *buf, int number_of_focus, int laten
     {
 
         int derivate[99];
+	int spot[50];
+        int spot_number = 0;
         for (int i = 0; i < 99; i++)
         {
             derivate[i] = sharpness_of_plans[i + 1] - sharpness_of_plans[i];
         }
-        int spot[50];
-        int spot_number = 0;
+        
         for (int i = 0; i < 99; i++)
         {
             if (derivate[i] > 0 && derivate[i + 1] < 0)
@@ -630,7 +635,7 @@ static gboolean multifocus_init(GstPlugin *multifocus)
                                 GST_TYPE_multifocus);
 }
 
-static void gst_multifocus_finalize() // GObject *object)
+static void gst_multifocus_finalize(void) // GObject *object)
 {
     disable_VdacPda(devicepda, bus);
     i2c_close(bus);

@@ -7,6 +7,8 @@
 #include <math.h>
 
 static multifocusConf currentConf;
+void logmultifocusInfo(int nbIter, long int sharpness);
+void goToPDA(I2CDevice *device, int bus, int pda);
 
 List debugInfo = { NULL, 0 };
 
@@ -118,7 +120,7 @@ long int unbiasedSharpnessThread(guint8 *imgMat, int width, ROI roi)
 {
     long int finalResult = 0;
     long int finalAverage = 0;
-
+    long int n;
     pthread_t threads[NB_THREADS];
     SharpnessParameters params[NB_THREADS];
 
@@ -147,7 +149,7 @@ long int unbiasedSharpnessThread(guint8 *imgMat, int width, ROI roi)
         finalAverage += params[i].average;
     }
 
-    long int n = roi.width * roi.height;
+    n = roi.width * roi.height;
     finalAverage = finalAverage / n;
 
     return finalResult / finalAverage;
@@ -157,14 +159,14 @@ long int getSharpness(GstPad *pad, GstBuffer *buf, ROI roi)
 {
     GstMapInfo map;
 
-    gst_buffer_map(buf, &map, GST_MAP_READ);
+
 
     GstCaps *caps = gst_pad_get_current_caps(pad);
     GstStructure *s = gst_caps_get_structure(caps, 0);
-
+long int sharp;
     gboolean res;
     gint width, height;
-
+    gst_buffer_map(buf, &map, GST_MAP_READ);
     // we need to get the final caps on the buffer to get the size
     res = gst_structure_get_int(s, "width", &width);
     res |= gst_structure_get_int(s, "height", &height);
@@ -175,7 +177,7 @@ long int getSharpness(GstPad *pad, GstBuffer *buf, ROI roi)
         return -1;
     }
 
-    long int sharp = unbiasedSharpnessThread(map.data, width, roi);
+    sharp = unbiasedSharpnessThread(map.data, width, roi);
 
     /*for (int y = roi.y; y < roi.y + roi.height - 1; y++)
     {
@@ -334,6 +336,7 @@ void resetmultifocus(multifocusStrategy strat, multifocusConf *conf, I2CDevice *
     }
     else
     {
+	char tmp[128];
         currentConf.debugLvl = conf->debugLvl;
         currentConf.bestPdaValue = 0;
         currentConf.pdaValue = conf->pdaMin;
@@ -348,7 +351,7 @@ void resetmultifocus(multifocusStrategy strat, multifocusConf *conf, I2CDevice *
         currentConf.phase = conf->phase;
         currentConf.currentStrategy = strat;
         
-        char tmp[128];
+        
         
         if (currentConf.debugLvl >= MINIMAL)
         {
@@ -369,12 +372,12 @@ void resetmultifocus(multifocusStrategy strat, multifocusConf *conf, I2CDevice *
     goToPDA(device, bus, currentConf.pdaMin);
 }
 
-void resetDebugInfo()
+void resetDebugInfo(void)
 {
     invalidList(&debugInfo);
 }
 
-void freeDebugInfo()
+void freeDebugInfo(void)
 {
     freeList(&debugInfo);
 }
