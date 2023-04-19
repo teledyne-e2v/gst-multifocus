@@ -532,6 +532,9 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
 
 
     Gstmultifocus *multifocus = GST_multifocus(parent);
+    GstCaps *caps = gst_pad_get_current_caps(pad);
+    GstStructure *s = gst_caps_get_structure(caps,0);
+    
     if(!i2c_err)
 {
     int number_of_focus_points = 3;
@@ -559,10 +562,30 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     {
         if (frame < 71)
         {
+            gint width=0,height=0;
+            
+            
+            gst_structure_get_int(s,"width", &width);
+            gst_structure_get_int(s,"height", &height);
+            
+            
+            
+            
             roi.x = multifocus->ROI1x;
             roi.y = multifocus->ROI1y;
             roi.height = multifocus->ROI2y - multifocus->ROI1y;
             roi.width = multifocus->ROI2x - multifocus->ROI1x;
+            
+            if(roi.height>height)
+            {
+            	roi.height=height-roi.y;
+            }
+            
+            if(roi.width>width)
+            {
+            	roi.width=width-roi.x;
+            }
+            
             checkRoi();
             if (multifocus->auto_detect_plans)
             {

@@ -11,9 +11,16 @@ int i2cInit(I2CDevice *device, I2CDevice *devicepda, int *bus)
 	if ((*bus = i2c_open(bus_name)) == -1)
 	{
 
-		fprintf(stderr, "Open i2c bus:%s error!\n", bus_name);
-		return -3;
+		fprintf(stderr, "Open i2c bus:%s error, try bus : 2\n", bus_name);
+		bus_name[9]='2';
+		if ((*bus = i2c_open(bus_name)) == -1)
+		{
+			fprintf(stderr, "Open i2c bus:%s error\n", bus_name);
+			return -3;
+		}
+
 	}
+	
 
 	printf("Bus %s open\n", bus_name);
 
