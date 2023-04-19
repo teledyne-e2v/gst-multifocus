@@ -97,7 +97,8 @@ enum
     PROP_NEXT,
     PROP_PLAN1,
     PROP_PLAN2,
-    PROP_PLAN3
+    PROP_PLAN3,
+    PROP_PLANS
 };
 int max_tab(int *tab, int size_of_tab);
 int maximum_and_zero(int *tab, int *spot, int number_of_spot);
@@ -211,6 +212,10 @@ static void gst_multifocus_class_init(GstmultifocusClass *klass)
                                     g_param_spec_boolean("next", "Next",
                                                          "Research of next plan (usefull only for applications)",
                                                          FALSE, G_PARAM_READWRITE));
+     g_object_class_install_property(gobject_class, PROP_PLANS,
+                                    g_param_spec_pointer("plans", "Plans",
+                                                         "string containing the differents PDA of the plans",
+                                                         G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_AUTO_DETECT_PLANS,
                                     g_param_spec_boolean("auto_detect_plans", "Auto_detect_plans",
                                                          "auto detection of plans",
@@ -273,7 +278,7 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
     multifocus->plan3 = 0;
     multifocus->reset = false;
     multifocus->auto_detect_plans = true;
-
+    multifocus->plans =  &(GValue){(long unsigned int)malloc(sizeof(int)*50)};
     i2c_err = i2cInit(&device, &devicepda, &bus);
 
     for (int i = 0; i < 100; i++)
@@ -334,6 +339,9 @@ static void gst_multifocus_set_property(GObject *object, guint prop_id,
     case PROP_NEXT:
         multifocus->next = g_value_get_boolean(value);
         break;
+    case PROP_PLANS:
+        multifocus->plans = g_value_get_pointer(value);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -391,6 +399,9 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
         break;
     case PROP_PLAN3:
         g_value_set_int(value, multifocus->plan3);
+        break;
+    case PROP_PLANS:
+        g_value_set_pointer(value, multifocus->plans);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);

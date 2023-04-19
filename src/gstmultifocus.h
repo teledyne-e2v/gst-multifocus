@@ -43,7 +43,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-
 #ifndef __GST_multifocus_H__
 #define __GST_multifocus_H__
 
@@ -76,14 +75,14 @@ typedef enum
     COMPLETED
 } multifocusStatus;
 int all_focus[50];
-int indice_next=-1;
-int frame=0;
-int current_focus=0;
-int plans=0;
+int indice_next = -1;
+int frame = 0;
+int current_focus = 0;
+int plans = 0;
 int sharpness_of_plans[100];
-int start=0;
-int searching_plans=0;
-int i2c_err =0;
+int start = 0;
+int searching_plans = 0;
+int i2c_err = 0;
 struct _Gstmultifocus
 {
     GstElement element;
@@ -92,18 +91,20 @@ struct _Gstmultifocus
     gboolean work;
     gboolean reset;
     gint number_of_plans;
-    gint     latency;
+    gint latency;
     gint wait_after_start;
     gint space_between_switch;
-      gint ROI1x;
-  gint ROI1y;
-  gint ROI2x;
-  gint ROI2y;
-  gboolean auto_detect_plans;
-  gboolean next;
-  gint plan1;
-  gint plan2;
-  gint plan3;
+    gint ROI1x;
+    gint ROI1y;
+    gint ROI2x;
+    gint ROI2y;
+    gboolean auto_detect_plans;
+    gboolean next;
+    gint plan1;
+    gint plan2;
+    gint plan3;
+
+    GValue *plans;
 };
 
 struct _GstmultifocusClass
