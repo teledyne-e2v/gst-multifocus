@@ -15,13 +15,25 @@ The following libraries are required for this plugin.
 - libgstreamer1.0-dev
 - libgstreamer-plugins-base1.0-dev
 
-Install them with: 
+#### Debian based system (Jetson): 
 
 ```
 sudo apt install v4l-utils libv4l-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
 ```
-
 ##### Note : if you are using a Yocto distribution, look at the github to find a .bbappend file which provides all packages to your distribution 
+
+### For compilation 
+Note : gcc autotools and make are installed by default in most of linux distributions (not on all yocto images).
+
+- gcc
+- (autotools + make) or (meson + ninja) 
+
+### For usage 
+
+- gstreamer-1.0
+
+
+
 # Compilation
 
 ## Ubuntu (Jetson)
@@ -90,6 +102,7 @@ gst-inspect-1.0 multifocus
 ```
 
 If the plugin failed to install the following message will be displayed: "No such element or plugin 'multifocus'"
+
 
 # Uninstall
 ```
