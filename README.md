@@ -24,7 +24,7 @@ sudo apt install v4l-utils libv4l-dev libgstreamer1.0-dev libgstreamer-plugins-b
 ##### Note : if you are using a Yocto distribution, look at the github to find a .bbappend file which provides all packages to your distribution 
 # Compilation
 
-## For Ubuntu
+## Ubuntu (Jetson)
 First you must make sure that your device's clock is correctly setup.
 Otherwise the compilation will fail.
 
@@ -56,7 +56,7 @@ make
 sudo make install
 ```
 
-## For Yocto
+## Yocto (IMX)
 First you must make sure that your device's clock is correctly setup.
 Otherwise the compilation will fail.
 
