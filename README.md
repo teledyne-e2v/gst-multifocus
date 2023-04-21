@@ -1,6 +1,7 @@
 # Version 1.0
 
 # About
+
 This plugin implements a basic multifocus algorithm.
 
 The principle of multifocus is to change focus at regular intervals, it can be used for example to decode barcodes located on different focal planes or also to reconstruct a clear image at all planes.
