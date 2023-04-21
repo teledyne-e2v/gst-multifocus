@@ -66,7 +66,7 @@
 #include <gst/gst.h>
 #include <unistd.h>
 #include <stdio.h>
-
+#include <stdlib.h>
 #include "gstmultifocus.h"
 #include "i2c_control.h"
 
@@ -99,11 +99,18 @@ enum
     PROP_PLAN2,
     PROP_PLAN3,
     PROP_PLANS
+   
 };
 int max_tab(int *tab, int size_of_tab);
 int maximum_and_zero(int *tab, int *spot, int number_of_spot);
-void find_best_plan(GstPad *pad, GstBuffer *buf, int indice_test, Gstmultifocus *multifocus);
-void find_best_plans(GstPad *pad, GstBuffer *buf, int number_of_focus, int latency, Gstmultifocus *multifocus);
+int find_best_plan(GstPad *pad, GstBuffer *buf, int indice_next, Gstmultifocus *multifocus);
+void copy(const char* src,char *dest);
+void constructString(char* string, int *tab,int size);
+void check_ROI_with_frame(gint *width,gint *height, ROI *roi);
+void parseString(char* string, int *tab,int size);
+//void find_best_plan(GstPad *pad, GstBuffer *buf, int indice_test, Gstmultifocus *multifocus);
+//void find_best_plans(GstPad *pad, GstBuffer *buf, int number_of_focus, int latency, Gstmultifocus *multifocus);
+int find_best_plans(GstPad *pad, GstBuffer *buf, int *number_of_focus, int latency, Gstmultifocus *multifocus);
 static void gst_multifocus_finalize(void);
 
 I2CDevice device;
@@ -140,33 +147,6 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
 
 static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuffer *buf);
 
-/**
- * @brief Prevent the ROI from protuding from the image
- */
-static void checkRoi(void)
-{
-    // Prevent the ROI from being to close to the very end of the frame as it migth crash when calculating the sharpness
-    if (roi.x > 1916)
-    {
-        roi.x = 1916;
-    }
-
-    if (roi.y > 1076)
-    {
-        roi.y = 1076;
-    }
-
-    // Prevent the ROI from going outsides the bounds of the image
-    if (roi.x + roi.width >= 1920)
-    {
-        roi.width -= ((roi.x + roi.width) - 1920);
-    }
-
-    if (roi.y + roi.height > 1080)
-    {
-        roi.height -= ((roi.y + roi.height) - 1080);
-    }
-}
 
 /* GObject vmethod implementations */
 
@@ -213,13 +193,15 @@ static void gst_multifocus_class_init(GstmultifocusClass *klass)
                                                          "Research of next plan (usefull only for applications)",
                                                          FALSE, G_PARAM_READWRITE));
      g_object_class_install_property(gobject_class, PROP_PLANS,
-                                    g_param_spec_pointer("plans", "Plans",
+                                    g_param_spec_string("plans", "Plans",
                                                          "string containing the differents PDA of the plans",
+							"0;200;400;",
                                                          G_PARAM_READWRITE));
     g_object_class_install_property(gobject_class, PROP_AUTO_DETECT_PLANS,
                                     g_param_spec_boolean("auto_detect_plans", "Auto_detect_plans",
                                                          "auto detection of plans",
                                                          TRUE, G_PARAM_READWRITE));
+
     gst_element_class_set_details_simple(gstelement_class,
                                          "multifocus",
                                          "FIXME:Generic",
@@ -278,7 +260,16 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
     multifocus->plan3 = 0;
     multifocus->reset = false;
     multifocus->auto_detect_plans = true;
-    multifocus->plans =  &(GValue){(long unsigned int)malloc(sizeof(int)*50)};
+    multifocus->plans= (char*)malloc(sizeof(char)*300);
+    //multifocus->plans="0;200;400;";
+    /*
+    multifocus->plans = (GValue*)malloc(sizeof(GValue)*50);
+    for(int i=0;i<50;i++)
+    {
+	multifocus->plans[i]=(GValue){0,G_TYPE_INT};
+	g_value_init(&(multifocus->plans[i]),G_TYPE_INT);
+    }*/
+
     i2c_err = i2cInit(&device, &devicepda, &bus);
 
     for (int i = 0; i < 100; i++)
@@ -286,6 +277,18 @@ static void gst_multifocus_init(Gstmultifocus *multifocus)
         sharpness_of_plans[i] = 0;
     }
 }
+
+void copy(const char* src,char *dest)
+{
+	int i = 0;
+	while(src[i])
+	{
+		dest[i]=src[i];
+		i++;
+	}
+	dest[i]='\0';
+}
+
 
 static void gst_multifocus_set_property(GObject *object, guint prop_id,
                                         const GValue *value, GParamSpec *pspec)
@@ -340,7 +343,7 @@ static void gst_multifocus_set_property(GObject *object, guint prop_id,
         multifocus->next = g_value_get_boolean(value);
         break;
     case PROP_PLANS:
-        multifocus->plans = g_value_get_pointer(value);
+	copy(g_value_get_string(value),multifocus->plans);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -391,6 +394,7 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
     case PROP_NEXT:
         g_value_set_boolean(value, multifocus->next);
         break;
+
     case PROP_PLAN1:
         g_value_set_int(value, multifocus->plan1);
         break;
@@ -401,7 +405,7 @@ static void gst_multifocus_get_property(GObject *object, guint prop_id,
         g_value_set_int(value, multifocus->plan3);
         break;
     case PROP_PLANS:
-        g_value_set_pointer(value, multifocus->plans);
+        g_value_set_string(value, multifocus->plans);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -439,7 +443,7 @@ int maximum_and_zero(int *tab, int *spot, int number_of_spot)
     tab[indice] = -1;
     return indice;
 }
-
+/*
 void find_best_plan(GstPad *pad, GstBuffer *buf, int indice_test, Gstmultifocus *multifocus)
 {
     if (frame > multifocus->latency)
@@ -470,7 +474,100 @@ void find_best_plan(GstPad *pad, GstBuffer *buf, int indice_test, Gstmultifocus 
         }
     }
 }
+*/
 
+
+int find_best_plan(GstPad *pad, GstBuffer *buf, int indice_next, Gstmultifocus *multifocus)
+{
+    if (step1 > multifocus->latency)
+    {
+
+        sharpness_of_plans[step1 - multifocus->latency] = getSharpness(pad, buf, roi);
+    }
+    // g_print("sharp : %d\n",sharpness_of_plans[frame-latency]);}
+    if (step1 < 80)
+    {
+        write_VdacPda(devicepda, bus, (step1-9)*10);
+        // g_print("frame : %d\n",frame);
+    }
+    else
+    {
+
+        int ind = max_tab(sharpness_of_plans, 100);
+        plans_int[indice_next]=(ind-9) * 10;
+	printf("plans : %d , %d ,%d, %d\n",indice_next,plans_int[0],plans_int[1],plans_int[2]);
+	return 1;
+    }
+    step1++;
+    return 0;
+}
+
+
+
+
+int find_best_plans(GstPad *pad, GstBuffer *buf, int *number_of_focus, int latency, Gstmultifocus *multifocus)
+{
+	if (step2 > latency && step2 < 80 + latency)
+    	{
+        	sharpness_of_plans[step2 - latency] = getSharpness(pad, buf, roi);
+    	}
+    
+    // g_print("sharp : %d\n",sharpness_of_plans[step-latency]);}
+    if (step2 < 80)
+    {
+        write_VdacPda(devicepda, bus, (step2-9)*10);
+        // g_print("step : %d\n",step);
+    }
+    else
+    {
+
+        int derivate[99];
+	int spot[50];
+        int spot_number = 0;
+        for (int i = 0; i < 99; i++)
+        {
+            derivate[i] = sharpness_of_plans[i + 1] - sharpness_of_plans[i];
+        }
+        
+        for (int i = 0; i < 99; i++)
+        {
+            if (derivate[i] > 0 && derivate[i + 1] < 0)
+            {
+                spot[spot_number] = i;
+                spot_number++;
+            }
+        }
+        if (*number_of_focus >= spot_number)
+        {
+            for (int i = 0; i < spot_number; i++)
+            {
+                plans_int[i] = (spot[i]-9) * 10;
+       		g_print(" best plans :%d", plans_int[i]);
+            }
+	    	*number_of_focus = spot_number;
+		
+		g_print("\n");
+
+        }
+        else
+        {
+
+            for (int i = 0; i < *number_of_focus; i++)
+            {
+
+                int indice = maximum_and_zero(sharpness_of_plans, spot, spot_number);
+		plans_int[i]=(indice-9) * 10;
+       		g_print(" best plans :%d", plans_int[i]);
+            }
+       	    g_print("\n");
+
+        }
+	return 1;
+    }
+    step2++;
+    return 0;
+}
+/*
 void find_best_plans(GstPad *pad, GstBuffer *buf, int number_of_focus, int latency, Gstmultifocus *multifocus)
 {
 
@@ -485,7 +582,6 @@ void find_best_plans(GstPad *pad, GstBuffer *buf, int number_of_focus, int laten
         write_VdacPda(devicepda, bus, (frame)*10);
         // g_print("frame : %d\n",frame);
     }
-
     else
     {
 
@@ -533,11 +629,154 @@ void find_best_plans(GstPad *pad, GstBuffer *buf, int number_of_focus, int laten
             g_print(" best plans :%d, %d, %d\n", all_focus[0], all_focus[1], all_focus[2]);
         }
     }
+}*/
+
+
+
+void constructString(char* string, int *tab,int size)
+{
+	string[0]=0;
+	for(int i=0;i<size;i++)
+	{
+		int err;
+		err = sprintf(string,"%s%d;",string,tab[i]);
+		if(err == -1)
+		{
+			return;
+		}
+		printf("string : %s\n",string);
+	}
 }
+void parseString(char* string, int *tab,int size)
+{
+
+	for(int i=0;i<size;i++)
+	{
+		int size_of_number;
+		char tmp[10];
+		size_of_number = sscanf(string,"%d;",&(tab[i]));
+		if(size_of_number<0)
+			return;
+
+		snprintf(tmp,10,"%d",tab[i]);
+		string+=strlen(tmp)+1;
+		//printf("tab[%d] : %d\n",i,tab[i]);
+
+	}
+}
+
+void check_ROI_with_frame(gint *width,gint *height, ROI *roi)
+{
+
+            	if(roi->height>*height)
+            	{
+            		roi->height=*height-roi->y;
+            	}
+            
+            	if(roi->width>*width)
+            	{
+            		roi->width=*width-roi->x;
+            	}
+}
+
 
 /* chain function
  * this function does the actual processing
  */
+
+
+
+
+
+static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuffer *buf)
+{
+    Gstmultifocus *multifocus = GST_multifocus(parent);
+    GstCaps *caps = gst_pad_get_current_caps(pad);
+    GstStructure *s = gst_caps_get_structure(caps,0);
+
+
+	
+	if(!i2c_err && multifocus->work)
+	{
+		gint width=0,height=0;
+            
+            
+            	gst_structure_get_int(s,"width", &width);
+            	gst_structure_get_int(s,"height", &height);
+            	roi.x = multifocus->ROI1x;
+            	roi.y = multifocus->ROI1y;
+            	roi.height = multifocus->ROI2y - multifocus->ROI1y;
+            	roi.width = multifocus->ROI2x - multifocus->ROI1x;
+		check_ROI_with_frame(&width,&height,&roi);
+
+		if(multifocus->reset)
+		{
+			int done=0;
+			if(multifocus->auto_detect_plans)
+			{
+				if(multifocus->wait_after_start < frame)
+				{
+
+					done = find_best_plans(pad, buf, &(multifocus->number_of_plans), multifocus->latency, multifocus);
+					g_print("number of focus %d \n",multifocus->number_of_plans);
+
+				}
+				if(done)
+				{
+					constructString(multifocus->plans, plans_int,multifocus->number_of_plans);
+					multifocus->reset=false;
+					multifocus->next=false;
+					step1=0;
+					step2=0;
+					indice_next=0;
+				}
+			
+			}
+			else
+			{
+				if(multifocus->next)
+				{
+					done = find_best_plan(pad, buf, indice_next, multifocus);
+
+				}
+				if(done)
+				{
+					multifocus->next=false;
+					step1=0;
+					step2=0;
+					indice_next++;
+				}
+				if(indice_next==multifocus->number_of_plans)
+				{
+					multifocus->reset=false;
+					indice_next=0;
+					constructString(multifocus->plans, plans_int,multifocus->number_of_plans);
+				}
+			}
+			
+			//g_print(" best plans :%d\n", plans_int[0]);
+		}
+		else
+		{
+			parseString(multifocus->plans,plans_int,multifocus->number_of_plans);
+			//g_print(" best plans out :%d\n", plans_int[0]);
+
+			if (frame % (multifocus->space_between_switch + 1) == 0)
+            		{
+                		write_VdacPda(devicepda, bus,plans_int[current_focus]);
+                		current_focus++;
+                		if (current_focus >= multifocus->number_of_plans)
+                		{
+                    			current_focus = 0;
+                		}
+            		}
+		}
+	}
+	frame++;
+    return gst_pad_push(multifocus->srcpad, buf);
+}
+
+/*
 static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuffer *buf)
 {
 
@@ -545,14 +784,10 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     Gstmultifocus *multifocus = GST_multifocus(parent);
     GstCaps *caps = gst_pad_get_current_caps(pad);
     GstStructure *s = gst_caps_get_structure(caps,0);
-    
+    parseString(multifocus->plans,plans_int,multifocus->number_of_plans);
     if(!i2c_err)
 {
-    int number_of_focus_points = 3;
 
-    all_focus[0] = multifocus->plan1;
-    all_focus[1] = multifocus->plan2;
-    all_focus[2] = multifocus->plan3;
     if (start == 0 && frame > multifocus->wait_after_start && (multifocus->reset || multifocus->auto_detect_plans))
     {
 
@@ -561,9 +796,10 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     }
     else if (frame % (multifocus->space_between_switch + 1) == 0 && searching_plans==0 && multifocus->work)
     {
-        write_VdacPda(devicepda, bus, all_focus[current_focus]);
+        write_VdacPda(devicepda, bus,plans_int[current_focus]);
+	printf("plans_int[%d] : %d\n",current_focus,plans_int[current_focus]);
         current_focus++;
-        if (current_focus == number_of_focus_points)
+        if (current_focus >= multifocus->number_of_plans)
         {
             current_focus = 0;
         }
@@ -578,9 +814,6 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
             
             gst_structure_get_int(s,"width", &width);
             gst_structure_get_int(s,"height", &height);
-            
-            
-            
             
             roi.x = multifocus->ROI1x;
             roi.y = multifocus->ROI1y;
@@ -600,7 +833,7 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
             checkRoi();
             if (multifocus->auto_detect_plans)
             {
-                find_best_plans(pad, buf, number_of_focus_points, multifocus->latency, multifocus);
+                find_best_plans(pad, buf, multifocus->number_of_plans, multifocus->latency, multifocus);
             }
             else
             {
@@ -637,9 +870,9 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
             else if (frame % (multifocus->space_between_switch + 1) == 0 && (indice_next == multifocus->number_of_plans - 1 || multifocus->auto_detect_plans))
             {
                 searching_plans=0;
-                write_VdacPda(devicepda, bus, all_focus[current_focus]);
+                write_VdacPda(devicepda, bus,plans_int[current_focus]);
                 current_focus++;
-                if (current_focus == number_of_focus_points)
+                if (current_focus >= multifocus->number_of_plans)
                 {
                     current_focus = 0;
                 }
@@ -648,9 +881,9 @@ static GstFlowReturn gst_multifocus_chain(GstPad *pad, GstObject *parent, GstBuf
     }
     frame++;
 	}
-    /* just push out the incoming buffer */
+
     return gst_pad_push(multifocus->srcpad, buf);
-}
+}*/
 
 /* entry point to initialize the plug-in
  * initialize the plug-in itself
@@ -664,6 +897,7 @@ static gboolean multifocus_init(GstPlugin *multifocus)
      */
     GST_DEBUG_CATEGORY_INIT(gst_multifocus_debug, "multifocus",
                             0, "Template multifocus");
+
 
     return gst_element_register(multifocus, "multifocus", GST_RANK_NONE,
                                 GST_TYPE_multifocus);

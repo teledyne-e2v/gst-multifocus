@@ -75,14 +75,17 @@ typedef enum
     COMPLETED
 } multifocusStatus;
 int all_focus[50];
-int indice_next = -1;
+int indice_next = 0;
 int frame = 0;
+int step1 = 0;
+int step2 = 0;
 int current_focus = 0;
 int plans = 0;
 int sharpness_of_plans[100];
 int start = 0;
 int searching_plans = 0;
 int i2c_err = 0;
+int plans_int[50];
 struct _Gstmultifocus
 {
     GstElement element;
@@ -100,11 +103,12 @@ struct _Gstmultifocus
     gint ROI2y;
     gboolean auto_detect_plans;
     gboolean next;
+
     gint plan1;
     gint plan2;
     gint plan3;
-
-    GValue *plans;
+    gchar* plans;
+    
 };
 
 struct _GstmultifocusClass
