@@ -1,4 +1,4 @@
-# Version 1.0
+# Version 2.0
 
 # About
 This plugin implements a basic multifocus algorithm.
@@ -6,6 +6,11 @@ This plugin implements a basic multifocus algorithm.
 The principle of multifocus is to change focus at regular intervals, it can be used for example to decode barcodes located on different focal planes or also to reconstruct a clear image at all planes.
 
 It require **OPTIMOM 2M** driver installed on the system.
+
+This plugin has been developed for Jetson nano and IMX8M mini.
+
+Tested only on Jetpack 4.6(Jetson nano) and Yocto Dunfell(IMX8M mini), driver versions tested : 0.4 - 0.7 (driver version shouldn't matter)
+
 
 # Dependencies
 
