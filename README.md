@@ -7,6 +7,10 @@ The principle of multifocus is to change focus at regular intervals, it can be u
 
 It require **OPTIMOM 2M** driver installed on the system.
 
+This plugin has been developed for Jetson nano and IMX8M mini.
+
+Tested only on Jetpack 4.6(Jetson nano) and Yocto Dunfell(IMX8M mini), driver versions tested : 0.4 - 0.7 (driver version shouldn't matter)
+
 # Dependencies
 
 The following libraries are required for this plugin.
