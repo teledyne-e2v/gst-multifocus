@@ -245,9 +245,9 @@ gstmultifocus = library('gstmultifocus',
 )
 
 conf_data = configuration_data()
-conf_data.set('package_version', '1.0.0')
+conf_data.set('package_version', '2.0.0')
 conf_data.set('package_name', 'multifocus')
-conf_data.set('package_string', 'multifocus 1.0.0')
+conf_data.set('package_string', 'multifocus 2.0.0')
 conf_data.set('tar_name', 'multifocus')
 configure_file(input : 'config.h.in',
                output : 'config.h',
