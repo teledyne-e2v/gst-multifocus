@@ -1,16 +1,12 @@
-=== Version 1.1 ===
+=== Version 2.0 ===
 
-06-05-2022
+- Complete restructuration of the algorithm (almost the same functioning but way easier to understand).
+- Implementation of the "number-of-plans" parameter.
+- Autodectect plan can detect as many plans as specified by "number-of-plans"
+- If autodetect can't detect the good number of plan, will ajust the parameter "number-of-plans" to match.
+- Suppression of "plan1", "plan2", "plan3" parameters.
+- Creation of the parameter "plans".
+- "plans" replace the "plan1" "plan2" "plan3"
 
-- Tweak some parameters to improve the autofocus speed
-- The sharpness calculation is now normalised by the average of the pixels squared to be less sensitive to light level change
-- Improvement to the autofocus algorithms to make them more reliable
 
-=== Version 1.2 ===
-
-20-05-2022
-
-- Fix to the two phase algorithm
-- Added the option to recalibrate the autofocus using the black pattern of the sensor
-- Added a new parameter to hold a pda value multiple frames
-- Added more debugging information
+Note: This changes are major, all applications using previous version of the plugin should be adapted.
