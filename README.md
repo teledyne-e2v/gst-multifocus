@@ -122,15 +122,15 @@ gst-launch-1.0 v4l2src ! multifocus ! queue ! videoconvert ! queue ! xvimagesink
 
 Multifocus between 3 plans with PDA=0/200/400 :
 ```
-gst-launch-1.0 v4l2src ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false ! queue ! videoconvert ! queue ! xvimagesink sync=false
+gst-launch-1.0 v4l2src ! multifocus number-of-plans=3 plans="0,200,400" auto-detect-plans=false ! queue ! videoconvert ! queue ! xvimagesink sync=false
 ```
 
 Multifocus between 3 plans with PDA=0/200/400 with 5 frame between each switch of plans :
 ```
-gst-launch-1.0 v4l2src ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false space-between-switch=5 ! queue ! videoconvert ! queue ! xvimagesink sync=false
+gst-launch-1.0 v4l2src ! multifocus number-of-plans=3 plans="0,200,400" auto-detect-plans=false space-between-switch=5 ! queue ! videoconvert ! queue ! xvimagesink sync=false
 ```
 
-### With NVIDIA plugins
+### With NVIDIA plugins (Jetsons only)
 Note : You should have update the **nvvidconv** plugin to support GRAY8, if not the image will be grayed out.
 
 Simple test :
@@ -140,12 +140,12 @@ gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! mul
 
 Multifocus between 3 plans with PDA=0/200/400 :
 ```
-gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus number-of-plans=3 plans="0,200,400" auto-detect-plans=false ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
 ```
 
 Multifocus between 3 plans with PDA=0/200/400 with 5 frame between each switch of plans :
 ```
-gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus plan1=0 plan2=200 plan3=400 auto-detect-plans=false space-between-switch=5 ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
+gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! multifocus number-of-plans=3 plans="0,200,400" auto-detect-plans=false space-between-switch=5 ! autoexposure ! nvvidconv ! 'video/x-raw(memory:NVMM),format=I420' ! nv3dsink sync=0
 ```
 
 # Plugin parameters (gst-inspect-1.0 multifocus)
@@ -161,7 +161,7 @@ gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! mul
 	- Range: 1 - 120 
 	- Default: 3 
 
--  number-of-plans     : Not implemented yet, please do not use
+-  number-of-plans     : Specify the number of plans 
 	- flags: readable, writable
 	- Integer. 
 	- Range: 1 - 50 
@@ -218,20 +218,7 @@ gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! mul
 	- Boolean. 
 	- Default: false
 
--  plan1               : Initialize focus plan 1 with PDA value
+-  plans               : string containing the differents PDA of the plans
 	- flags: readable, writable
-	- Integer. 
-	- Range: -90 - 700 
-	- Default: 0 
-
--  plan2               : Initialize focus plan 2 with PDA value
-	- flags: readable, writable
-	- Integer. 
-	- Range: -90 - 700 
-	- Default: 0 
-
--  plan3               : Initialize focus plan 3 with PDA value
-	- flags: readable, writable
-	- Integer. 
-	- Range: -90 - 700 
-	- Default: 0 
+	- String. 
+  	- Default: ""
