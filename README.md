@@ -221,4 +221,4 @@ gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! mul
 -  plans               : string containing the differents PDA of the plans
 	- flags: readable, writable
 	- String. 
-
+  	- Default: ""
