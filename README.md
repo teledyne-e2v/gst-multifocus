@@ -12,6 +12,7 @@ This plugin has been developed for Jetson nano and IMX8M mini.
 Tested only on Jetpack 4.6(Jetson nano) and Yocto Dunfell(IMX8M mini), driver versions tested : 0.4 - 0.7 (driver version shouldn't matter)
 
 
+
 # Dependencies
 
 The following libraries are required for this plugin.
@@ -19,23 +20,36 @@ The following libraries are required for this plugin.
 - libv4l-dev
 - libgstreamer1.0-dev
 - libgstreamer-plugins-base1.0-dev
+- gcc
+- meson (>= 0.49)
+- ninja
+- gstreamer-1.0
 
-#### Debian based system (Jetson): 
+
+### Debian based system (Jetson): 
 
 ```
 sudo apt install v4l-utils libv4l-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
 ```
-##### Note : if you are using a Yocto distribution, look at the github to find a .bbappend file which provides all packages to your distribution 
+Meson >= 0.49 is required, you can download the good version on the official debian repositories :
+https://packages.debian.org/buster/all/meson/download.
 
-### For compilation 
-Note : gcc autotools and make are installed by default in most of linux distributions (not on all yocto images).
+Once you have download your package, you can install it with the command : 
+```
+sudo apt install ./meson_0.49.2-1_all.deb
+```
 
-- gcc
-- (autotools + make) or (meson + ninja) 
+This should install the ninja package, if not use the command : 
+```
+sudo apt install ninja
+```
 
-### For usage 
+### Yocto based system (IMX): 
 
-- gstreamer-1.0
+Teledyne provide a bbappend file which provides all packages needed :
+https://github.com/teledyne-e2v/Yocto-files
+
+##### Note : You can also compile them on your installed distribution but it will take a long time to compile (Do it only if you miss one or two packages)
 
 
 
@@ -44,8 +58,6 @@ Note : gcc autotools and make are installed by default in most of linux distribu
 ## Ubuntu (Jetson)
 First you must make sure that your device's clock is correctly setup.
 Otherwise the compilation will fail.
-
-### Using Meson 
 
 In the **gst-multifocus** folder do:
 
@@ -59,25 +71,9 @@ ninja -C build
 sudo ninja -C build install
 ```
 
-### Using Autotools (deprecated)
-
-In the **gst-multifocus** folder do:
-```
-bash autogen.sh
-```
-```
-make
-```
-
-```
-sudo make install
-```
-
 ## Yocto (IMX)
 First you must make sure that your device's clock is correctly setup.
 Otherwise the compilation will fail.
-
-### Using Meson 
 
 In the **gst-multifocus** folder do:
 
@@ -86,16 +82,6 @@ meson build
 ```
 ```
 ninja -C build install
-```
-
-### Using Autotools (deprecated)
-
-In the **gst-multifocus** folder do:
-```
-bash autogen.sh
-```
-```
-make install
 ```
 
 # Installation test
