@@ -1,4 +1,4 @@
-project('gst-plugins-good', 'c',
+project('gst-multifocus', 'c',
   version : '2.0.0',
   meson_version : '>= 0.49',
   default_options : [ 'warning_level=1',
