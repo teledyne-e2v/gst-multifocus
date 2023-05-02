@@ -103,10 +103,6 @@ struct _Gstmultifocus
     gint ROI2y;
     gboolean auto_detect_plans;
     gboolean next;
-
-    gint plan1;
-    gint plan2;
-    gint plan3;
     gchar* plans;
     
 };
