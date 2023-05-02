@@ -131,7 +131,7 @@ gst-launch-1.0 v4l2src ! multifocus number-of-plans=3 plans="0,200,400" auto-det
 ```
 
 ### With NVIDIA plugins (Jetsons only)
-Note : You should have update the **nvvidconv** plugin to support GRAY8, if not the image will be grayed out.
+Note : You should have update the **nvvidconv** plugin to support GRAY8, if not the image will be grayed out. Github link : https://github.com/teledyne-e2v/gst-nvvidconv
 
 Simple test :
 ```
