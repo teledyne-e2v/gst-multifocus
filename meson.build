@@ -1,10 +1,10 @@
 project('gst-plugins-good', 'c',
-  version : '1.14.2',
+  version : '2.0.0',
   meson_version : '>= 0.49',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized' ])
 
-gst_version = meson.project_version()
+gst_version = '1.14.2'
 version_arr = gst_version.split('.')
 gst_version_major = version_arr[0].to_int()
 gst_version_minor = version_arr[1].to_int()
