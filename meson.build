@@ -1,6 +1,6 @@
 project('gst-multifocus', 'c',
   version : '2.0.0',
-  meson_version : '>= 0.49',
+  meson_version : '>= 0.43',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized' ])
 
@@ -59,10 +59,6 @@ else
   noseh_link_args = []
 endif
 
-if cc.has_link_argument('-Wl,-Bsymbolic-functions')
-  add_project_link_arguments('-Wl,-Bsymbolic-functions', language : 'c')
-endif
-
 # Symbol visibility
 if cc.has_argument('-fvisibility=hidden')
   add_project_arguments('-fvisibility=hidden', language: 'c')
@@ -82,22 +78,25 @@ endif
 cdata = configuration_data()
 
 check_headers = [
-  ['HAVE_DLFCN_H', 'dlfcn.h'],
-  ['HAVE_FCNTL_H', 'fcntl.h'],
-  ['HAVE_INTTYPES_H', 'inttypes.h'],
-  ['HAVE_MEMORY_H', 'memory.h'],
-  ['HAVE_PROCESS_H', 'process.h'],
-  ['HAVE_STDINT_H', 'stdint.h'],
+
+  ['HAVE_STDBOOL_H', 'stdbool.h'],
   ['HAVE_STDLIB_H', 'stdlib.h'],
-  ['HAVE_STRINGS_H', 'strings.h'],
-  ['HAVE_STRING_H', 'string.h'],
-  ['HAVE_SYS_IOCTL_H', 'sys/ioctl.h'],
-  ['HAVE_SYS_PARAM_H', 'sys/param.h'],
-  ['HAVE_SYS_SOCKET_H', 'sys/socket.h'],
-  ['HAVE_SYS_STAT_H', 'sys/stat.h'],
-  ['HAVE_SYS_TIME_H', 'sys/time.h'],
-  ['HAVE_SYS_TYPES_H', 'sys/types.h'],
   ['HAVE_UNISTD_H', 'unistd.h'],
+  ['HAVE_STDIO_H', 'stdio.h'],
+  ['HAVE_MATH_H', 'math.h'],
+  ['HAVE_PTHREAD_H', 'pthread.h'],
+  ['HAVE_STRING_H', 'string.h'],
+  ['HAVE_TIME_H', 'sys/time.h'],
+  ['HAVE_SIGNAL_H', 'signal.h'],
+  ['HAVE_PTHREAD_H', 'pthread.h'],
+  ['HAVE_GST_H', 'gst/gst.h'],
+  ['HAVE_APRA_INET_H', 'arpa/inet.h'], #i2c control
+  ['HAVE_IOCTL_H', 'sys/ioctl.h'], #i2c control
+  ['HAVE_FCNTL_H', 'fcntl.h'], #i2c control
+  ['HAVE_STAT_H', 'sys/stat.h'], #i2c control
+  ['HAVE_TYPES_H', 'sys/types.h'],#i2c control
+  ['HAVE_I2C_H', 'linux/i2c.h'],#i2c control
+  ['HAVE_I2V-DEV_H', 'linux/i2c-dev.h'],#i2c control
 ]
 
 foreach h : check_headers
@@ -107,45 +106,11 @@ foreach h : check_headers
 endforeach
 
 check_functions = [
-  ['HAVE_ASINH', 'asinh', '#include<math.h>'],
-  ['HAVE_CLOCK_GETTIME', 'clock_gettime', '#include<time.h>'],
-  ['HAVE_COSH', 'cosh', '#include<math.h>'],
-# check token HAVE_CPU_ALPHA
-# check token HAVE_CPU_ARM
-# check token HAVE_CPU_CRIS
-# check token HAVE_CPU_CRISV32
-# check token HAVE_CPU_HPPA
-# check token HAVE_CPU_I386
-# check token HAVE_CPU_IA64
-# check token HAVE_CPU_M68K
-# check token HAVE_CPU_MIPS
-# check token HAVE_CPU_PPC
-# check token HAVE_CPU_PPC64
-# check token HAVE_CPU_S390
-# check token HAVE_CPU_SPARC
-# check token HAVE_CPU_X86_64
-  ['HAVE_DCGETTEXT', 'dcgettext', '#include<libintl.h>'],
-# check token HAVE_DIRECTSOUND
-# check token HAVE_EXPERIMENTAL
-# check token HAVE_EXTERNAL
-# check token HAVE_FPCLASS
-# check token HAVE_GCC_ASM
-  ['HAVE_GETPAGESIZE', 'getpagesize', '#include<unistd.h>'],
-# check token HAVE_GETTEXT
-# check token HAVE_GST_V4L2
-  ['HAVE_ISINF', 'isinf', '#include<math.h>'],
-# check token HAVE_LIBV4L2
-  ['HAVE_MMAP', 'mmap', '#include<sys/mman.h>'],
-  ['HAVE_MMAP64', 'mmap64', '#include<sys/mman.h>'],
-# check token HAVE_OSX_AUDIO
-# check token HAVE_OSX_VIDEO
-# check token HAVE_RDTSC
-  ['HAVE_SINH', 'sinh', '#include<math.h>'],
-# check token HAVE_WAVEFORM
-  ['HAVE_GMTIME_R', 'gmtime_r', '#include<time.h>'],
+  ['HAVE_LOG', 'log', '#include<math.h>'],
+  ['HAVE_POW', 'pow', '#include<math.h>'],
 ]
 
-libm = cc.find_library('m', required : false)
+libm = cc.find_library('m', required : true)
 
 foreach f : check_functions
   if cc.has_function(f.get(1), prefix : f.get(2), dependencies : libm)
@@ -245,11 +210,11 @@ gstmultifocus = library('gstmultifocus',
 )
 
 conf_data = configuration_data()
-conf_data.set('package_version', '2.0.0')
-conf_data.set('package_name', 'multifocus')
-conf_data.set('package_string', 'multifocus 2.0.0')
-conf_data.set('tar_name', 'multifocus')
+conf_data.set('package_version', meson.project_version())
+conf_data.set('package_name', meson.project_name())
+conf_data.set('package', meson.project_name())
+conf_data.set('package_string', meson.project_name() + meson.project_version())
+conf_data.set('tar_name', meson.project_name())
 configure_file(input : 'config.h.in',
                output : 'config.h',
                configuration : conf_data)
-
