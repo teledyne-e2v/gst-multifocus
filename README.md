@@ -21,27 +21,14 @@ The following libraries are required for this plugin.
 - libgstreamer1.0-dev
 - libgstreamer-plugins-base1.0-dev
 - gcc
-- meson (>= 0.49)
+- meson
 - ninja
-- gstreamer-1.0
 
 
 ### Debian based system (Jetson): 
 
 ```
-sudo apt install v4l-utils libv4l-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
-```
-Meson >= 0.49 is required, you can download the good version on the official debian repositories :
-https://packages.debian.org/buster/all/meson/download.
-
-Once you have download your package, you can install it with the command : 
-```
-sudo apt install ./meson_0.49.2-1_all.deb
-```
-
-This should install the ninja package, if not use the command : 
-```
-sudo apt install ninja
+sudo apt install v4l-utils libv4l-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev meson
 ```
 
 ### Yocto based system (IMX): 

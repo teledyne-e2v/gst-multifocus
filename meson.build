@@ -1,6 +1,6 @@
 project('gst-multifocus', 'c',
   version : '2.0.0',
-  meson_version : '>= 0.49',
+  meson_version : '>= 0.43',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized' ])
 
@@ -59,9 +59,6 @@ else
   noseh_link_args = []
 endif
 
-if cc.has_link_argument('-Wl,-Bsymbolic-functions')
-  add_project_link_arguments('-Wl,-Bsymbolic-functions', language : 'c')
-endif
 
 # Symbol visibility
 if cc.has_argument('-fvisibility=hidden')
