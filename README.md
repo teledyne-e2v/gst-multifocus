@@ -152,7 +152,7 @@ gst-launch-1.0 v4l2src ! 'video/x-raw,width=1920,height=1080,format=GRAY8' ! mul
 	- flags: readable, writable
 	- Integer. 
 	- Range: 1 - 50 
-	- Default: 4 
+	- Default: 3 
 
 -  wait-after-start    : number of frames we are waiting before launching the multifocus
 	- flags: readable, writable
