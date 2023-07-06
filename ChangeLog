@@ -8,7 +8,6 @@
 - Creation of the parameter "plans".
 - "plans" replace the "plan1" "plan2" "plan3"
 - "plans" can configure as many plans as specified by the "number-of-plans"
-
 - Suppresion of the autotools support
 
 Note: This changes are major, all applications using previous versions of the plugin should be adapted.
